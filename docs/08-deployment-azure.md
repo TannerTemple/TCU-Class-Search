@@ -41,7 +41,7 @@ Checked against Microsoft's pages on Nov 8, 2026. Recheck before relying on thes
 
 Sources: [App Service limits](https://learn.microsoft.com/en-us/azure/azure-resource-manager/management/azure-subscription-service-limits), [App Service Linux pricing](https://azure.microsoft.com/en-us/pricing/details/app-service/linux/), [Azure for Students](https://azure.microsoft.com/en-us/free/students), [Python on App Service](https://learn.microsoft.com/en-us/azure/app-service/configure-language-python).
 
-**Recommendation:** start on Free. Move to Basic before registration-day traffic if quotas are hit (OQ-08). The Free 60-minute and 3-minute CPU limits are the likeliest problem during a rush, and without Always On the app can go idle and start slowly.
+**Team decision (D-36):** use the cheapest tier that runs the app within the student credit. Start on Free, and move to Basic if quotas are hit. The Free 60-minute and 3-minute CPU limits are the likeliest problem during a rush, and without Always On the app can go idle and start slowly.
 
 ## First-time setup
 
@@ -103,4 +103,4 @@ Environment variables are documented in `.env.example`. On Azure, set them as ap
 
 ## Domain
 
-Use the Azure default for now. `classify.tcu.edu` needs TCU IT approval, and `tcu.com` isn't ours (D-14, OQ-06). A custom domain requires leaving the Free tier.
+Use the Azure default for now. After launch, the team will work with TCU on `classify.tcu.edu`, or on Classify taking over `classes.tcu.edu` (D-38). `tcu.com` isn't ours. A custom domain requires leaving the Free tier.

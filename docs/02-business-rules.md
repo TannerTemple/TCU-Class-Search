@@ -14,7 +14,7 @@ These rules are binding. Requirements in [04-requirements.md](04-requirements.md
 | BR-08 | Two sections conflict only when they share a day, their times overlap, and their date ranges overlap. If a date range can't be determined, assume it overlaps. | Different-half 8-week sessions don't clash | Confirmed. The data has start dates only; end dates follow D-21 |
 | BR-09 | A conflict is a warning, not a block. Both sections stay on the calendar. | Students compare backups | Confirmed |
 | BR-10 | Sections with no set meeting time (online, arranged, TBA) go in an "Unscheduled" list under the calendar. | Can't be placed on a grid | Confirmed |
-| BR-11 | Linked components (lecture plus lab) are added together only if the data links them. | Students need both to register | The data has no link (OQ-03), so each component is added separately in the MVP |
+| BR-11 | Lectures and labs stay separate sections, each with its own class number. The app never adds one automatically. When a course also lists labs, the app says so and the student picks. | The data doesn't say which lab goes with which lecture, and each needs its own class number to enroll | Confirmed (D-32) |
 | BR-12 | The schedule autosaves to the browser after every change. No account needed. | Reloading today wipes everything | Confirmed |
 | BR-13 | Rate My Professor is a link-out only; the app doesn't copy RMP ratings or reviews. | RMP's terms | Confirmed |
 | BR-14 | Instructor photos are not in the MVP. If added later, they come only from TCU's staff directory. | Don't pull people's photos from random sources | Confirmed (later) |

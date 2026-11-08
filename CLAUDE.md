@@ -47,7 +47,8 @@ BR IDs in `docs/02-business-rules.md` are law. In particular:
 - Treat status as a snapshot, and always show the data timestamp (BR-04, BR-05).
 - Permit sections count as Closed in the filter and chip (BR-21).
 - Use no TCU logos or marks, and keep the footer disclaimer (BR-16).
-- Don't edit the scraped class data files. They are replaced whole (see the runbook in `docs/06-data-dictionary.md`).
+- Don't edit the scraped class data files. They are replaced whole (see the runbook in `docs/06-data-dictionary.md`). Corrections go in `data/overrides.json`.
+- Keep lectures and labs as separate sections, and never guess a pairing or a missing meeting (BR-11, D-33).
 
 ## Coding conventions
 

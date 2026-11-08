@@ -1,1 +1,27 @@
-[]
+[
+  {
+    "class_nbr": "31705",
+    "instructor_name": "Michael Scherger",
+    "rmp_url": "https://www.ratemyprofessors.com/professor/1749709"
+  },
+  {
+    "class_nbr": "31172",
+    "instructor_name": "James Huffman",
+    "rmp_url": "https://www.ratemyprofessors.com/professor/2985106"
+  },
+  {
+    "class_nbr": "35616",
+    "instructor_name": "Dr. Gong",
+    "rmp_url": "https://www.ratemyprofessors.com/professor/1633208"
+  },
+  {
+    "class_nbr": "35617",
+    "instructor_name": "Dr. Gong",
+    "rmp_url": "https://www.ratemyprofessors.com/professor/1633208"
+  },
+  {
+    "class_nbr": "35618",
+    "instructor_name": "Dr. Gong",
+    "rmp_url": "https://www.ratemyprofessors.com/professor/1633208"
+  }
+]

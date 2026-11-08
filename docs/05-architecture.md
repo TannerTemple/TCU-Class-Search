@@ -4,7 +4,7 @@
 
 Classify is one Flask app using the app-factory pattern (D-03). At startup it:
 
-1. Loads the JSON from `CLASSIFY_DATA_PATH` and the timestamp from `CLASSIFY_META_PATH`.
+1. Loads the JSON from `CLASSIFY_DATA_PATH`, the timestamp from `CLASSIFY_META_PATH`, and corrections from `data/overrides.json`.
 2. Validates them and fails loudly if they are bad (NFR-07).
 3. Normalizes records into `Section` and `Meeting` objects (FR-39).
 4. Builds simple indexes by subject and by class number.
@@ -109,5 +109,6 @@ For Spring 2027, 8W1 runs 01/19/27 to at most 03/21/27. 8W2 starts 03/22/27. The
 | TCU changes classes.tcu.edu and the scraper breaks | No new data | `validate_data.py` catches shape changes. The site keeps the last good data, with its timestamp |
 | TCU moves off PeopleSoft (many schools are moving to Workday) | The data source changes | Keep source-specific logic in the loader |
 | Registration-day traffic | Slow site or quota limit | Serve from memory, compress, cache, and move up a tier beforehand (NFR-02, OQ-08) |
-| Stale status data | Students trust an old status | Timestamp, snapshot labels, and stale warning (BR-04, BR-05, FR-31) |
+| Stale status data | Students trust an old status | Timestamp and snapshot labels (BR-04, BR-05). A stale warning comes later (FR-31) |
+| Scrape drops extra meeting patterns | Missed conflicts, mostly in math | Rescrape with one row per meeting (OQ-24). Until then, flag affected sections (FR-43) |
 | Bus factor after the team graduates in May 2027 | The project dies | Recommend a student org to take over. Keep docs current |

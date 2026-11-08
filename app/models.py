@@ -36,6 +36,7 @@ class Section:
     session_code: str
     session_name: str | None
     component_type: str
+    component_label: str | None  # Provisional (D-25). None means show the raw code.
     core_codes: tuple[str, ...]
     start_date: date
     end_date: date | None  # Latest possible end. None means unknown (BR-08).
@@ -45,7 +46,9 @@ class Section:
     enroll_max: int | None
     rsv_max: int | None
     wait_max: int | None
-    note: str | None
+    note: str | None  # Always None for now (D-27).
+    course_description_url: str | None  # From syllabus_url (D-24).
     meetings: tuple[Meeting, ...] = field(default_factory=tuple)  # Empty means Unscheduled.
+    meetings_may_be_incomplete: bool = False  # Listed in data/overrides.json (FR-43).
     instructor_name: str | None = None  # Showcase classes only (D-12).
     rmp_url: str | None = None  # Showcase classes only (D-12).
