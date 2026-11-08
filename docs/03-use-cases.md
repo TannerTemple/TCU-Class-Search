@@ -1,6 +1,6 @@
 # Use cases
 
-**Actors:** Student (primary), Admin (Elliot or Tanner), and my.tcu.edu (external; TCU's registration system).
+**Actors:** Student (primary), Admin (Elliott or Tanner), and my.tcu.edu (external; TCU's registration system).
 
 ## Summary
 
@@ -11,9 +11,9 @@
 | UC-03 | View class details | Student | Tap a result → pop-up (not a new page) shows every non-empty field, 12-hour times, session dates, status as of scrape, class number with copy | Yes |
 | UC-04 | Check the professor | Student | For showcase classes, tap "Rate My Professor" in the pop-up → RMP opens in a new tab | Yes (showcase only) |
 | UC-05 | Add to schedule from search | Student | Tap Add on a result or in the pop-up → the section appears on the weekly calendar at once → conflicts are flagged | Yes |
-| UC-06 | Manage the schedule | Student | Remove a section, swap it for another section of the same course, or hide/show backups | Yes |
+| UC-06 | Manage the schedule | Student | Remove a section, swap it for another section of the same course and component, or hide/show backups | Yes |
 | UC-07 | Keep the schedule | Student | Close or reload → the schedule restores from browser storage | Yes |
-| UC-08 | Hand off to register | Student | Tap "Copy class numbers" → open my.tcu.edu → enroll via the Purple Schedule Builder, Add Classes, or Shopping Cart | Yes |
+| UC-08 | Hand off to register | Student | Tap Copy on each scheduled class → open my.tcu.edu → enroll via the Purple Schedule Builder, Add Classes, or Shopping Cart | Yes |
 | UC-09 | Refresh class data | Admin | Replace the JSON → validate → redeploy → the timestamp updates | Yes (internal) |
 | UC-10 | Filter by Core requirement | Student | Pick a Core code → see sections that satisfy it | Yes (D-15) |
 | UC-11 | See RMP ratings in the app | Student | Ratings shown inline | Later (needs a permitted source) |
@@ -32,7 +32,7 @@ flowchart TD
     C --> D[Add to schedule]
     D --> E{Conflict?}
     E -- Yes: try another section --> A
-    E -- No --> F[Copy class numbers]
+    E -- No --> F[Copy each class number]
     F --> G[Register in my.tcu.edu]
     classDef external stroke-dasharray: 5 5;
     class G,R external;
@@ -56,11 +56,11 @@ Register in my.tcu.edu and the RMP link are outside the app.
 - **Closed class:** it appears with a "Closed as of …" chip and can still be added (BR-21).
 - **TBA or online class:** the row omits days and times it doesn't have (BR-18).
 - **Data fails to load:** show an error message, not an empty list.
-- **Stale data:** show the stale warning (FR-31).
+- **Stale data:** the MVP shows no warning (D-28). The timestamp and "as of" labels still show the data's age.
 
 **Postconditions:** Matching results are listed. Nothing is saved.
 
-**Related:** BR-04, BR-05, BR-06, BR-07, BR-18, BR-19 · FR-01, FR-02, FR-11, FR-12, FR-13, FR-29, FR-30, FR-31, FR-32, FR-36, FR-41
+**Related:** BR-04, BR-05, BR-06, BR-07, BR-18, BR-19 · FR-01, FR-02, FR-11, FR-12, FR-13, FR-29, FR-30, FR-32, FR-36, FR-41
 
 ### UC-02: Filter results
 
@@ -94,11 +94,13 @@ Register in my.tcu.edu and the RMP link are outside the app.
 - **Permit section:** status reads Closed, with the permit detail beside it (BR-21).
 - **TBA or online section:** no meeting time row appears, and the section is marked as having no set time.
 - **Copy fails:** the class number stays visible and selectable, with a message to copy it by hand.
-- **No note or reserve limit:** those labels aren't rendered (BR-18).
+- **No reserve limit:** that label isn't rendered (BR-18).
+- **Course also lists labs:** the pop-up says so (FR-42).
+- **Times may be incomplete:** the pop-up says to check classes.tcu.edu (FR-43).
 
 **Postconditions:** The pop-up is closed and focus returns to the row that opened it.
 
-**Related:** BR-05, BR-06, BR-07, BR-18, BR-19, BR-20, BR-21 · FR-12, FR-13, FR-14, FR-15, FR-37
+**Related:** BR-05, BR-06, BR-07, BR-18, BR-19, BR-20, BR-21 · FR-12, FR-13, FR-14, FR-15, FR-37, FR-42, FR-43
 
 ### UC-04: Check the professor
 
@@ -132,12 +134,13 @@ Register in my.tcu.edu and the RMP link are outside the app.
 - **Closed class:** it can be added. The chip still shows Closed.
 - **TBA or online class:** it goes to the Unscheduled list (BR-10).
 - **Class outside the default grid:** the grid expands to fit it (FR-20).
-- **Lab and lecture:** each is added on its own, because the data doesn't link them (BR-11).
+- **Lab and lecture:** each is added on its own, because the data doesn't pair them. The app points out labs the course lists (BR-11, FR-42).
+- **Times may be incomplete:** the section shows a note, because a conflict could be missed (FR-43).
 - **Storage full or disabled:** the section stays on screen and a warning says it won't be saved (FR-26).
 
 **Postconditions:** The section is on the schedule and saved, if storage is available.
 
-**Related:** BR-08, BR-09, BR-10, BR-11, BR-12 · FR-16, FR-20, FR-21, FR-22, FR-23, FR-24, FR-26, FR-34
+**Related:** BR-08, BR-09, BR-10, BR-11, BR-12 · FR-16, FR-20, FR-21, FR-22, FR-23, FR-24, FR-26, FR-34, FR-42, FR-43
 
 ### UC-06: Manage the schedule
 
@@ -145,7 +148,7 @@ Register in my.tcu.edu and the RMP link are outside the app.
 
 **Main flow**
 1. The student removes a section, or
-2. swaps it for another section of the same course, or
+2. swaps it for another section of the same course and component, or
 3. hides or shows a backup.
 4. The calendar and conflict warnings update, and the schedule autosaves.
 
@@ -184,15 +187,15 @@ Register in my.tcu.edu and the RMP link are outside the app.
 **Preconditions:** At least one section is on the schedule.
 
 **Main flow**
-1. The student taps "Copy class numbers".
-2. The app copies the class numbers and confirms.
+1. The student taps Copy on a scheduled class.
+2. The app copies that class number and confirms. The student repeats this per class while enrolling (D-31).
 3. The student taps "Register in my.tcu.edu ↗", which opens a new tab.
 4. The student enrolls in my.tcu.edu through the Purple Schedule Builder, Add Classes, or Shopping Cart.
 
 **Alternate flows and edge cases**
-- **Empty schedule:** the copy button is disabled, with a hint to add classes.
-- **Copy fails:** show the numbers in selectable text.
-- **Section shows Closed or conflicts:** the numbers still copy. The app doesn't judge the schedule.
+- **Empty schedule:** there's nothing to copy, and a hint says to add classes.
+- **Copy fails:** the number stays visible and selectable.
+- **Section shows Closed or conflicts:** its number still copies. The app doesn't judge the schedule.
 - **Status changed since the scrape:** my.tcu.edu is the authority. The status label already says it is a snapshot (BR-05).
 
 **Postconditions:** The student has the numbers. Classify enrolled no one (BR-01).
@@ -213,13 +216,13 @@ Register in my.tcu.edu and the RMP link are outside the app.
 - **Validation fails:** don't deploy. Fix the data or the scraper.
 - **Validation gives warnings:** review them; they don't stop a deploy.
 - **Invalid data reaches startup:** the app fails loudly and doesn't serve bad data (NFR-07).
-- **Stale data:** the site warns students until the refresh ships (FR-31).
+- **Stale data:** the old timestamp stays visible until the refresh ships (BR-04).
 
 **Postconditions:** Students see the new data and timestamp.
 
 The steps are in the [data refresh runbook](06-data-dictionary.md#data-refresh-runbook).
 
-**Related:** BR-02, BR-03, BR-04 · FR-29, FR-31, FR-35, FR-38, FR-39, FR-40
+**Related:** BR-02, BR-03, BR-04 · FR-29, FR-35, FR-38, FR-39, FR-40
 
 ### UC-10: Filter by Core requirement
 

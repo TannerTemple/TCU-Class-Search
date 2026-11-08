@@ -21,7 +21,7 @@ The tabs are **Search** and **My schedule** (FR-34). Add gives visible feedback:
 |---|---|
 | Course code and title | Bold, first |
 | Section | Always |
-| Component type | Raw code, such as LEC (D-23) |
+| Component type | Provisional label, or the raw code (D-25) |
 | Session | Only if not Regular |
 | Days and time | "Mon, Wed, Fri · 9:00–9:50 AM". Omitted if there's no set time |
 | Core codes | Small tags, only if present (BR-20) |
@@ -40,7 +40,7 @@ Opens on the same page. Esc and an outside click close it. It traps focus while 
 | Course and title | `course_code`, `title` |
 | Class number, with copy button | `class_nbr` |
 | Section | `section` |
-| Component | `component_type` |
+| Component | `component_label`, or `component_type` if there's no label |
 | Session | `session_name`, or `session_code` if unnamed |
 | Starts | `start_date`, as "Jan 19, 2027" |
 | Meets | `meetings`, in 12-hour time |
@@ -48,7 +48,9 @@ Opens on the same page. Esc and an outside click close it. It traps focus while 
 | Core | `core_codes` |
 | Status | "Closed as of Nov 8 · Department permit required" for permit sections |
 | Seats | Enroll max, reserve max, wait max |
-| Note | `note`, when real text exists (OQ-11) |
+| Course description (TCU) ↗ | `course_description_url` (D-24) |
+| Labs | "This course also lists 23 lab sections", when it does (FR-42) |
+| Times note | "Meeting times may be incomplete. Check classes.tcu.edu.", when flagged (FR-43) |
 | Instructor and "Rate My Professor ↗" | Showcase classes only (FR-33) |
 | Add or Remove | Current schedule state |
 
@@ -59,7 +61,8 @@ Opens on the same page. Esc and an outside click close it. It traps focus while 
 - Conflicts get a red outline and a banner naming the clashing classes (FR-22). Color is not the only signal; the banner names them too.
 - Hidden backups appear in gray and can be toggled (FR-19).
 - An "Unscheduled" list sits under the grid (FR-23).
-- Top actions are "Copy class numbers" and "Register in my.tcu.edu ↗".
+- Each scheduled class has a copy button for its class number (D-31).
+- The top action is "Register in my.tcu.edu ↗".
 
 ## States
 
@@ -68,7 +71,6 @@ Opens on the same page. Esc and an outside click close it. It traps focus while 
 | Loading | Light placeholder in the results area, announced to screen readers |
 | No results | Message and a clear-filters action |
 | Empty schedule | Hint: add a class from search |
-| Data stale | Banner saying the class data may be out of date (FR-31) |
 | Storage unavailable | Warning that the schedule won't be saved (FR-26) |
 | Data load error | Message in place of the list, with a retry |
 

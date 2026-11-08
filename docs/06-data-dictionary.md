@@ -9,7 +9,8 @@ Data comes from the classes.tcu.edu public search results. It is scraped by subj
 | `data/tcu_classes_spring27.json` | Yes | 3.14 MB | 3,926 | `4273`, "27 Spring" |
 | `data/tcu_classes_fall26.json` | No (D-16) | 2.97 MB | 3,704 | `4267`, "26 Fall" |
 | `data/term_meta.json` | Yes (D-18) | — | — | Holds `term_code`, `scraped_at`, `source` |
-| `data/instructors_showcase.json` | Later (FR-33) | — | 0 | Hand-entered showcase instructors |
+| `data/instructors_showcase.json` | Later (FR-33) | — | 5 | Hand-entered showcase instructors |
+| `data/overrides.json` | Later (FR-39, FR-43) | — | — | Hand-entered corrections to the scraped data |
 
 Both class files share the same 25 keys. Every record has all of them.
 
@@ -27,9 +28,9 @@ Empty means `null`, `""`, or `[]`. Percentages and examples are from Spring 2027
 | `course` | Subject and catalog number | `ACCT 20353`, `ACCT 20653`, `ACCT 30153` | 0 | Main ID, bold (BR-07) | Always equals `subject` + space + `catalog_nbr` |
 | `section` | Section number | `002`, `010`, `020` | 0 | Result row and pop-up | Keep as text |
 | `session` | Session code | `REG`, `8W1`, `8W2` | 0 | Row only if not REG; pop-up | Also `4W1`, `4W2`. Fall adds `4W3`, `4WK` (OQ-13) |
-| `type` | Component type | `LEC`, `INT`, `PRA` | 0 | Raw code on row and pop-up (D-23) | 15 Spring codes (OQ-14). Not in the team's field list |
+| `type` | Component type | `LEC`, `INT`, `PRA` | 0 | Provisional label, with raw code available; `STA`, `LCL`, and `PER` raw (D-25) | 15 Spring codes (OQ-14). Not in the team's field list |
 | `core_codes` | Core curriculum codes | `[WEM]`, `[CSV]`, `[CA, SSC]` | 72.4 | Row, pop-up, and filter (BR-20) | 14 codes, listed below |
-| `note` | Note flag | `Note` | 95.8 | Not displayed for now | Only ever the literal word "Note" (OQ-11) |
+| `note` | Note flag | `Note` | 95.8 | Never displayed (D-27) | Only ever the literal word "Note" (OQ-11) |
 | `title` | Title or topic | `Fundamentals of Accounting`, `Introduction to Accounting`, `Financial Reporting I` | 0 | Bold in row and pop-up | Up to 63 characters |
 | `start_date` | Start date, MM/DD/YY | `01/19/27`, `03/22/27`, `02/15/27` | 0 | Pop-up as "Jan 19, 2027" | Same for all rows in a session |
 | `instruction_mode` | Delivery mode | `In Person`, `Online Only` | 0 | Row if not In Person (D-22); pop-up; filter | 3,785 and 141 rows |
@@ -42,7 +43,7 @@ Empty means `null`, `""`, or `[]`. Percentages and examples are from Spring 2027
 | `rsv_max` | Reserve limit | `25`, `20`, `5` | 99.6 | Pop-up if present (BR-18) | |
 | `waitlisted` | Waitlist count | `0` | 0 | Not displayed (D-23) | Always 0 in Spring. Not in the team's field list |
 | `wait_max` | Waitlist limit | `0`, `10`, `5` | 0 | Pop-up | 2,726 rows are 0 |
-| `syllabus_url` | Syllabus link | `https://classes.tcu.edu/showsyl.aspx?Syl=ACCT203530024273` | 0 | Not displayed (D-23) | Whether syllabi exist is unknown (OQ-18) |
+| `syllabus_url` | Course description link, despite the key name | `https://classes.tcu.edu/showsyl.aspx?Syl=ACCT203530024273` | 0 | Pop-up as "Course description (TCU) ↗" (D-24) | Never call it a syllabus |
 | `bookstore_url` | Bookstore link | `https://www.bkstr.com/webApp/discoverView?bookstore_id-1=1546&term_id-1=4273&…` | 0 | Never displayed (BR-19) | The Course Materials link |
 
 **Confirmed absent:** instructor, room or location, course description, credit hours, end date, lecture-lab links, and a scrape timestamp. The fields the team expected are all present.
@@ -94,8 +95,9 @@ Defined in `app/models.py`.
 | `title` | text | `title` |
 | `section` | text | `section` |
 | `session_code` | text | `session` |
-| `session_name` | text or null | REG = Regular; 8W1/8W2 = 1st/2nd Eight Week. Otherwise null, and the code shows (OQ-13) |
+| `session_name` | text or null | REG = Regular; 8W1/8W2 = 1st/2nd Eight Week; 4W1 to 4W4 = 1st to 4th 4 Week; 3WK = Three Week. Otherwise null, and the code shows, as for 4WK (OQ-13) |
 | `component_type` | text | `type` |
+| `component_label` | text or null | Provisional label from OQ-14. Null for `STA`, `LCL`, `PER`, and unknown codes, so the raw code shows (D-25) |
 | `core_codes` | list | `core_codes` |
 | `start_date` | date | `start_date` |
 | `end_date` | date or null | D-21. An upper bound, for conflict checks only |
@@ -105,8 +107,10 @@ Defined in `app/models.py`.
 | `enroll_max` | integer or null | `enr_max` |
 | `rsv_max` | integer or null | `rsv_max` |
 | `wait_max` | integer or null | `wait_max` |
-| `note` | text or null | Null when the value is `""` or the literal `Note` (OQ-11) |
+| `note` | text or null | Always null (D-27) |
+| `course_description_url` | text | `syllabus_url` (D-24) |
 | `meetings` | list of `Meeting` | Parsed from `days` and `time`. Empty means Unscheduled (BR-10) |
+| `meetings_may_be_incomplete` | true or false | True if listed in `data/overrides.json` (FR-43) |
 | `instructor_name` | text or null | Showcase file only (D-12) |
 | `rmp_url` | text or null | Showcase file only (D-12) |
 
@@ -133,7 +137,7 @@ Read the code left to right, matching two-letter codes first.
 | `F` | Fri |
 | `SA` | Sat |
 | `SU` | Sun |
-| `S` (alone) | Sat. An assumption (OQ-15) |
+| `S` (alone) | Sat (D-30) |
 | `TBA` | No days |
 
 Spring values: `TBA`, `TR`, `MWF`, `MW`, `W`, `M`, `T`, `R`, `F`, `MF`, `SA`, `WF`, `WR`, `S`, `MTR`, `TWRF`, `TRF`. `SU` doesn't appear in the current data, but the parser handles it.
@@ -145,7 +149,7 @@ Spring values: `TBA`, `TR`, `MWF`, `MW`, `W`, `M`, `T`, `R`, `F`, `MF`, `SA`, `W
 | `H:MM-H:MM` or `HH:MM-HH:MM` | 2,647 | One `Meeting`. Pad to `HH:MM` and keep as 24-hour. `7:00` is 7 AM and `13:00` is 1 PM |
 | `ARR` | 1,242 | No meetings; Unscheduled |
 | `:-:` | 36 | No meetings; Unscheduled. All are nursing practicum rows with a day but no time |
-| empty | 1 | No meetings; Unscheduled. See bad rows below |
+| empty | 1 | Corrected by an override. See bad rows below |
 
 ### Online and TBA
 
@@ -153,7 +157,34 @@ Online isn't the same as unscheduled. Of 141 Online Only rows, 75 are TBA and 66
 
 ### Multiple meeting patterns
 
-Each row has one days/time pair, so the current data produces zero or one meeting per section. TCU's results page counts "class meetings", which suggests a class may have more than one. Classes with two patterns may have lost one in the scrape (OQ-10). `meetings[]` stays a list so that a fixed scrape works without a model change.
+Each row has one days/time pair, and every class number appears once, so the current data produces zero or one meeting per section. A review of all rows (OQ-10) shows that some sections almost certainly lost a meeting:
+
+- The last digit of a catalog number appears to be the credit hours, and 3-credit classes nearly always meet about 150 minutes a week.
+- 13 Spring math sections worth 4 credits show only 50 to 110 minutes a week. Calculus I section 050 shows only Mondays, 1:00–1:50 PM. The same pattern appears in Fall.
+- TCU's results page counts "class meetings", and a screenshot of what appears to be an MWF search shows 572 against 567 MWF rows here.
+
+| Rule | Detail |
+|---|---|
+| Loader | Merge rows sharing a class number into one section with several meetings (D-33) |
+| Scraper | Write one row per meeting (OQ-24) |
+| Until the rescrape | `data/overrides.json` lists the 13 math sections, which show an "incomplete times" note (FR-43) |
+| Never | Guess a missing meeting. Only the rescrape can supply it |
+
+### Lectures and labs
+
+One course can have many sections at different times. The row's `type`, not its section number, says what a section is.
+
+| Finding (Spring 2027) | Count |
+|---|---|
+| Courses with LAB sections | 76 |
+| Courses listing labs alongside another component under the same course code | 71 |
+| LAB sections with a section number starting with 1 | 226 of 246 |
+| Non-LAB sections with a section number starting with 1 | 169 (PRA, CLN, DIS) |
+| Labs whose last two section digits match a lecture | 65 of 228 |
+
+Section numbers hint at pairing but don't define it. BIOL 10003 has 4 lectures (010, 030, 035, 055) and 23 labs (101 and up), and nothing says which go together. A few courses also list one optional-looking lab beside many lectures, such as BUSI 30383 with 16 lectures and 1 lab.
+
+**Rule (D-32, BR-11):** keep each lecture and lab as its own section with its own class number, on the calendar and in the hand-off. Merging would require guessing pairs, and my.tcu.edu needs each class number. To keep them connected, a section whose course lists labs says so and offers to show them (FR-42). Swap offers only the same component type (FR-18).
 
 ### Duplicates
 
@@ -170,17 +201,17 @@ Scraping by subject could repeat classes, but the current data has none: `class_
 
 | Class number | Course | Problem | Handling |
 |---|---|---|---|
-| 35782 | FTDM 50970 | `days` holds `12:00-13:00`; `time` is empty | Unscheduled, and reported as a validation warning (OQ-16) |
+| 35782 | FTDM 50970 | `days` holds `12:00-13:00`; `time` is empty | Corrected in `data/overrides.json` to Tuesdays, 12:00–1:00 PM (D-29). The scraper should handle this case next time |
 
 ## Showcase instructor file
 
-`data/instructors_showcase.json` is hand-entered (D-12). It ships as an empty array.
+`data/instructors_showcase.json` is hand-entered (D-12, D-34). An empty `rmp_url` shows the name without a link.
 
 ```json
 [{"class_nbr": "00000", "instructor_name": "Placeholder Name", "rmp_url": "https://www.ratemyprofessors.com/placeholder"}]
 ```
 
-The values above are fake and show the format only. Never look up or invent real names or URLs. The team enters and verifies them (OQ-04).
+The values above are fake and show the format only. Never look up or invent real names or URLs. The team supplies and verifies them (OQ-04).
 
 ## Data refresh runbook
 

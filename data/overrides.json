@@ -1,0 +1,28 @@
+{
+  "meeting_overrides": [
+    {
+      "class_nbr": "35782",
+      "days": "T",
+      "time": "12:00-13:00",
+      "reason": "OQ-16: the team confirmed FTDM 50970 meets Tuesdays, 12:00-1:00 PM. The scrape put the time in the days field."
+    }
+  ],
+  "meetings_may_be_incomplete": {
+    "reason": "OQ-10: 4-credit math sections showing far fewer weekly minutes than their credits. Remove after the rescrape (OQ-24).",
+    "class_nbrs": [
+      "35012",
+      "35013",
+      "35026",
+      "35028",
+      "35029",
+      "35031",
+      "35034",
+      "35035",
+      "35038",
+      "35048",
+      "35049",
+      "35051",
+      "35055"
+    ]
+  }
+}

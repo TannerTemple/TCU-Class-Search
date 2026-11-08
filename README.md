@@ -23,7 +23,7 @@ Search every TCU class in a clean, fast UI and add classes straight onto your we
 - Add to a weekly calendar straight from search, with conflict warnings
 - Remove, swap, and show or hide sections
 - Autosave in the browser, with no account
-- "Copy class numbers" plus a link to my.tcu.edu
+- A copy button for each scheduled class number, plus a link to my.tcu.edu
 - Rate My Professor links for a few showcase classes
 - Works on phones
 
@@ -74,6 +74,7 @@ data/
   tcu_classes_fall26.json     Fall 2026 data (not in use)
   term_meta.json              Scrape time and source
   instructors_showcase.json   Hand-entered showcase instructors
+  overrides.json              Hand-entered data corrections
 docs/                   Project documentation
 scripts/
   validate_data.py      Data check to run before deploying
@@ -115,8 +116,8 @@ To contribute, read the [business rules](docs/02-business-rules.md) first. Make 
 
 ## Team
 
-Elliot Miles and Tanner Temple
+Elliott Miles and Tanner Temple
 
 ## License
 
-TBD ([OQ-07](docs/11-open-questions.md))
+Copyright 2026 Elliott Miles and Tanner Temple. All rights reserved. License TBD ([OQ-07](docs/11-open-questions.md)).

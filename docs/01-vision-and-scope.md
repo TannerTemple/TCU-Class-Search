@@ -8,7 +8,7 @@
 
 **Vision:** A TCU student finds classes and builds their own weekly schedule on one fast, clean page, without switching between Class Search, the Purple Schedule Builder, and RMP. Then they register in my.tcu.edu.
 
-**Team:** Elliot Miles and Tanner Temple, TCU students. Both own the scraper, front end, back end, and outreach.
+**Team:** Elliott Miles and Tanner Temple, TCU students. Both own the scraper, front end, back end, and outreach.
 
 **Status:** MVP. The target is to have the MVP built on Nov 8, 2026. TCU's first undergraduate registration round for Spring 2027 is Thursday, Nov 12, 2026. There is no hard launch date.
 
@@ -49,7 +49,7 @@ Today students go back and forth between Class Search and the Purple Schedule Bu
 |---|---|---|
 | Undergraduate student registering for next term | Find classes fast; add them to a weekly calendar; see conflicts | Yes, primary |
 | First-year student | Read times and sections without decoding them | Yes |
-| Team admin (Elliot, Tanner) | Replace the term data file and redeploy | Yes, internal |
+| Team admin (Elliott, Tanner) | Replace the term data file and redeploy | Yes, internal |
 | Advisors | See a student's planned schedule | Later |
 | TCU Registrar / IT | An official data feed, endorsement, and eventually adoption | Later (pitch after launch) |
 
@@ -61,7 +61,7 @@ Today students go back and forth between Class Search and the Purple Schedule Bu
 - Add to schedule straight from search, onto a weekly calendar. Conflicts are flagged.
 - Remove, swap, and show/hide sections on the calendar.
 - Autosave in the browser. A reload keeps the schedule.
-- Hand-off: a "Copy class numbers" button plus a link to my.tcu.edu.
+- Hand-off: a copy button for each scheduled class number, plus a link to my.tcu.edu (D-31).
 - RMP link-out for the hand-entered showcase instructors only.
 - A data timestamp on every data screen ("Class data as of …").
 - Works on phones.
@@ -77,8 +77,10 @@ Today students go back and forth between Class Search and the Purple Schedule Bu
 - Instructor photos and the full instructor list.
 - Sharing schedules between users.
 - A Fall 2026 term toggle (D-16).
+- A stale data warning (D-28).
+- An in-app feedback link (D-35).
 - Intramurals, events, transfer credit, and room finders.
 
 ## Success measures
 
-Students plan real schedules with it for the Spring 2027 registration window, and the team can show usage numbers to TCU. Specific targets are TBD (OQ-05).
+The best case for the MVP is about 10 students using the site (D-35). The goal is to hear what people like and don't like, gathered by hand, before the team approaches anyone at TCU.
