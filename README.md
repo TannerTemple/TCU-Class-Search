@@ -62,9 +62,9 @@ ruff check .
 app/
   __init__.py           create_app()
   config.py             Environment settings
-  data_loader.py        Load and validate data
+  data_loader.py        Load, validate, and normalize data
   models.py             Term, Section, Meeting
-  timefmt.py            Time and day handling (stub)
+  timefmt.py            Time and day handling
   conflicts.py          Conflict rule (stub)
   routes/               Page and API routes
   templates/            Jinja templates
