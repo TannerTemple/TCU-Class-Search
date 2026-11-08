@@ -1,0 +1,84 @@
+/* Layout shell only. Visual direction: docs/07-ui-spec.md. */
+:root {
+  --bg: #f8f7f9;
+  --surface: #ffffff;
+  --text: #24212a;
+  --muted: #625d6b;
+  --border: #e4e1e8;
+  --accent: #5b3a8c;
+  --space: 16px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.site-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--space);
+  padding: var(--space);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.brand {
+  color: var(--accent);
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.data-as-of {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 0.875rem;
+}
+
+.layout {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space);
+  padding: var(--space);
+}
+
+.panel {
+  padding: var(--space);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.panel h2 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.site-footer {
+  padding: var(--space);
+  color: var(--muted);
+  font-size: 0.875rem;
+  text-align: center;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .data-as-of {
+    margin-left: 0;
+  }
+}

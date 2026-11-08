@@ -1,0 +1,113 @@
+# Architecture
+
+## Overview
+
+Classify is one Flask app using the app-factory pattern (D-03). At startup it:
+
+1. Loads the JSON from `CLASSIFY_DATA_PATH` and the timestamp from `CLASSIFY_META_PATH`.
+2. Validates them and fails loudly if they are bad (NFR-07).
+3. Normalizes records into `Section` and `Meeting` objects (FR-39).
+4. Builds simple indexes by subject and by class number.
+
+There is no database in the MVP (D-04).
+
+```mermaid
+flowchart LR
+    J[("data JSON<br/>in the repo")] --> L[Flask loader and normalizer]
+    L --> S[In-memory store]
+    S --> A[JSON API]
+    S --> P[Jinja pages]
+    A --> U
+    P --> U
+    subgraph B[Browser]
+      U[Search UI] --> C[Weekly calendar]
+      C <--> Z[("localStorage<br/>classify.schedule.v1")]
+    end
+    C -. copy numbers, then link .-> M[my.tcu.edu]
+    U -. link-out .-> R[Rate My Professor]
+    classDef external stroke-dasharray: 5 5;
+    class M,R external;
+```
+
+my.tcu.edu and Rate My Professor are external. The app sends them nothing.
+
+## Modules
+
+| Path | Job |
+|---|---|
+| `app/__init__.py` | `create_app()`: config, data, blueprints |
+| `app/config.py` | Reads environment variables |
+| `app/data_loader.py` | Loads and validates data; `normalize()` is a stub |
+| `app/models.py` | `Term`, `Section`, `Meeting` dataclasses |
+| `app/timefmt.py` | Day and time parsing and formatting (stub) |
+| `app/conflicts.py` | BR-08 reference rule (stub) |
+| `app/routes/pages.py` | Page shell at `/` |
+| `app/routes/api.py` | JSON API (FR-35 to FR-38) |
+| `app/static/js/app.js` | Browser modules: search, calendar, storage (stubs) |
+| `scripts/validate_data.py` | Pre-deploy data check (FR-40) |
+
+## Search and filter location
+
+**Recommendation (D-19): run search and filter in the browser.** The page fetches `GET /api/sections` once, then filters locally.
+
+| Factor | In the browser (chosen) | Through the API on each change |
+|---|---|---|
+| Speed | No network wait per keystroke | Depends on Wi-Fi during registration |
+| Server load | One compressed fetch per visit | Many requests per student per visit |
+| Payload | About 85 KB gzipped, estimated from current Spring data | Small per request |
+| Dataset size | 3,926 rows, small enough for a phone | Handles much larger data |
+| Azure quota | Light on CPU, which matters on the Free tier | Heavier |
+
+The API params in FR-36 remain for testing and later use, but the UI doesn't call them on each change. Long result lists render incrementally so the page stays smooth (NFR-01).
+
+## Browser storage
+
+The schedule is stored in localStorage under a versioned key. It holds only the term code, class numbers, and visibility flags:
+
+```json
+{
+  "version": 1,
+  "term_code": "4273",
+  "items": [{"class_nbr": "34429", "visible": true}]
+}
+```
+
+Bumping the key's version lets a later release migrate or discard old data safely. Schedules never leave the browser (NFR-06).
+
+## One source of truth for shared logic
+
+**Recommendation (D-20):**
+
+| Logic | Where it runs | How it stays consistent |
+|---|---|---|
+| Parsing days and times; 12-hour formatting | Python only (`app/timefmt.py`) | The API sends 24-hour `start_time` and `end_time`, plus a ready-made `meeting_text`. The browser doesn't format times |
+| Conflict rule (BR-08) | Browser at runtime; `app/conflicts.py` is the reference | Both must pass the same case file, `tests/fixtures/conflict_cases.json`, to be created with FR-21 |
+
+The conflict rule must run in the browser because the schedule can't be sent to the server (NFR-06). The Python version is tested with pytest. The JavaScript version is tested with Node's built-in test runner, which needs no npm packages and no build step, and Node is needed only for tests.
+
+## Date ranges
+
+The data has only `start_date` (OQ-02). Under D-21, the loader finds each session's start date in the data, and then:
+
+- A numbered session ends the day before the next session in its family starts. 8W1 ends before 8W2. 4W1 ends before 4W2.
+- The last session in a family, REG, and unknown codes get `end_date = null`, which counts as overlapping (BR-08).
+
+For Spring 2027, 8W1 runs 01/19/27 to at most 03/21/27. 8W2 starts 03/22/27. The derived date is an upper bound used only for conflict checks, so the UI doesn't show it as an end date.
+
+## Future path
+
+| Change | Trigger |
+|---|---|
+| SQLite or PostgreSQL | The data grows or accounts arrive |
+| An official TCU data feed replaces the scrape | TCU agrees (D-08). Only the loader should change |
+| App Service scale-up or scale-out | Traffic or quotas require it. See [deployment](08-deployment-azure.md) |
+
+## Risks
+
+| Risk | Impact | Mitigation |
+|---|---|---|
+| TCU changes classes.tcu.edu and the scraper breaks | No new data | `validate_data.py` catches shape changes. The site keeps the last good data, with its timestamp |
+| TCU moves off PeopleSoft (many schools are moving to Workday) | The data source changes | Keep source-specific logic in the loader |
+| Registration-day traffic | Slow site or quota limit | Serve from memory, compress, cache, and move up a tier beforehand (NFR-02, OQ-08) |
+| Stale status data | Students trust an old status | Timestamp, snapshot labels, and stale warning (BR-04, BR-05, FR-31) |
+| Bus factor after the team graduates in May 2027 | The project dies | Recommend a student org to take over. Keep docs current |
