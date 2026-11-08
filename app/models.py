@@ -52,3 +52,4 @@ class Section:
     meetings_may_be_incomplete: bool = False  # Listed in data/overrides.json (FR-43).
     instructor_name: str | None = None  # Showcase classes only (D-12).
     rmp_url: str | None = None  # Showcase classes only (D-12).
+ 
