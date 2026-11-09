@@ -92,6 +92,7 @@ Environment variables are documented in `.env.example`. On Azure, set them as ap
 |---|---|---|
 | `CLASSIFY_DATA_PATH` | `data/tcu_classes_spring27.json` | Term data |
 | `CLASSIFY_META_PATH` | `data/term_meta.json` | Timestamp and source |
+| `CLASSIFY_OVERRIDES_PATH` | `data/overrides.json` | Hand-entered data corrections |
 | `CLASSIFY_SHOWCASE_PATH` | `data/instructors_showcase.json` | Showcase instructors |
 | `FLASK_DEBUG` | `0` | Local debugging. Flask removed `FLASK_ENV` in version 2.3 |
 

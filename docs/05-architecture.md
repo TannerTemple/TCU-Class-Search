@@ -37,9 +37,9 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 |---|---|
 | `app/__init__.py` | `create_app()`: config, data, blueprints |
 | `app/config.py` | Reads environment variables |
-| `app/data_loader.py` | Loads and validates data; `normalize()` is a stub |
+| `app/data_loader.py` | Loads, validates, and normalizes data |
 | `app/models.py` | `Term`, `Section`, `Meeting` dataclasses |
-| `app/timefmt.py` | Day and time parsing and formatting (stub) |
+| `app/timefmt.py` | Day and time parsing and formatting |
 | `app/conflicts.py` | BR-08 reference rule (stub) |
 | `app/routes/pages.py` | Page shell at `/` |
 | `app/routes/api.py` | JSON API (FR-35 to FR-38) |

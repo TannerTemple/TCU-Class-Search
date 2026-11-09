@@ -27,4 +27,9 @@ def test_mismatched_term_meta_is_rejected(tmp_path: Path) -> None:
         '{"term_code": "0000", "scraped_at": "2026-11-08T14:51:07-06:00", "source": "x"}'
     )
     with pytest.raises(DataError, match="does not match"):
-        load_data_store(Config.CLASSIFY_DATA_PATH, meta)
+        load_data_store(
+            Config.CLASSIFY_DATA_PATH,
+            meta,
+            Config.CLASSIFY_OVERRIDES_PATH,
+            Config.CLASSIFY_SHOWCASE_PATH,
+        )

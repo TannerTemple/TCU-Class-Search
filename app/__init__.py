@@ -23,6 +23,8 @@ def create_app(overrides: Mapping[str, Any] | None = None) -> Flask:
     app.extensions["classify_store"] = load_data_store(
         app.config["CLASSIFY_DATA_PATH"],
         app.config["CLASSIFY_META_PATH"],
+        app.config["CLASSIFY_OVERRIDES_PATH"],
+        app.config["CLASSIFY_SHOWCASE_PATH"],
     )
 
     app.register_blueprint(pages_bp)
