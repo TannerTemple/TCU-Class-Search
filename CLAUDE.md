@@ -10,9 +10,9 @@ A student-built, unofficial replacement for TCU's public class search that combi
 
 ## Status
 
-Built so far: data loading and cleanup (#5), the JSON API (#6), and the results list with search and filters (#8, #9). The calendar and pop-up aren't built yet, and `app/conflicts.py` is a stub. Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
+Built so far: data loading and cleanup (#5), the JSON API (#6), the results list with search and filters (#8, #9), and the weekly calendar with add, remove, and BR-08 conflicts (#11, #12). The pop-up isn't built yet. Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
 
-**Build order:** #11 (calendar) → #12 (conflicts) → #10 (pop-up) → #13 (autosave, swap, hide) → #14 (hand-off) → #7 (Azure deploy) → get feedback from about 10 students → #15 (mobile, accessibility). If most testers will use phones, do #15 before feedback.
+**Build order:** #10 (pop-up) → #13 (autosave, swap, hide) → #14 (hand-off) → #7 (Azure deploy) → get feedback from about 10 students → #15 (mobile, accessibility). If most testers will use phones, do #15 before feedback.
 
 **Data:** Build on the current Spring 2027 file. The Fall 2026 file is unused (D-16).
 
@@ -24,7 +24,7 @@ Built so far: data loading and cleanup (#5), the JSON API (#6), and the results 
 
 1. Pick the next issue. Read its FR IDs in `docs/04-requirements.md`.
 2. Branch from an up-to-date `main`: `feat/<issue-number>-<short-name>`.
-3. Before opening a PR, run `ruff check .`, `ruff format --check .`, `pytest`, and `python scripts/validate_data.py`. CI runs the same checks.
+3. Before opening a PR, run `ruff check .`, `ruff format --check .`, `pytest`, `python scripts/validate_data.py`, and, if `app/static/js/conflicts.js` changed, `node --test tests/js`. CI runs the same checks.
 4. Open one PR per issue, with `Closes #<issue-number>` in the description.
 5. The other teammate approves it, because GitHub doesn't allow approving your own PR.
 
@@ -38,6 +38,7 @@ pytest                           # test
 ruff check .                     # lint
 ruff format .                    # format
 python scripts/validate_data.py  # check the data
+node --test tests/js             # test the JS conflict rule (D-20); needs Node, nothing else
 ```
 
 ## Folder map
