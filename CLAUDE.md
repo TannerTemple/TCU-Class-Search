@@ -10,11 +10,9 @@ A student-built, unofficial replacement for TCU's public class search that combi
 
 ## Status
 
-Built so far: data loading and cleanup (#5), the JSON API (#6), and the results list with search (#8). The calendar, filters, and pop-up aren't built yet, and `app/conflicts.py` is a stub. Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
+Built so far: data loading and cleanup (#5), the JSON API (#6), and the results list with search and filters (#8, #9). The calendar and pop-up aren't built yet, and `app/conflicts.py` is a stub. Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
 
-**Build order:** #9 (filters) → #11 (calendar) → #12 (conflicts) → #10 (pop-up) → #13 (autosave, swap, hide) → #14 (hand-off) → #7 (Azure deploy) → get feedback from about 10 students → #15 (mobile, accessibility). If most testers will use phones, do #15 before feedback.
-
-**With #9:** The results list rebuilds every row on each change, up to 3,926 at once. Render long lists incrementally in the same PR (NFR-01).
+**Build order:** #11 (calendar) → #12 (conflicts) → #10 (pop-up) → #13 (autosave, swap, hide) → #14 (hand-off) → #7 (Azure deploy) → get feedback from about 10 students → #15 (mobile, accessibility). If most testers will use phones, do #15 before feedback.
 
 **Data:** Build on the current Spring 2027 file. The Fall 2026 file is unused (D-16).
 

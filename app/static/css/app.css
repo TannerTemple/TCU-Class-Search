@@ -204,6 +204,52 @@ body {
   outline-offset: 2px;
 }
 
+#filters-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space);
+  margin-top: var(--space);
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: none;
+}
+
+.filter-group legend,
+.filter-group > span,
+.filter-group > label {
+  font-size: 0.875rem;
+  color: var(--muted);
+  padding: 0;
+}
+
+.filter-group select,
+.filter-group input[type="time"] {
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9375rem;
+}
+
+.filter-option {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.9375rem;
+  color: var(--text);
+}
+
+.clear-all-btn {
+  align-self: flex-start;
+  margin-left: 0;
+  font-weight: 600;
+}
+
 @media (max-width: 768px) {
   .layout {
     grid-template-columns: minmax(0, 1fr);
