@@ -79,7 +79,7 @@ Acceptance criteria use **G** (Given), **W** (When), and **T** (Then).
 | ID | Area | Requirement | Verified by |
 |---|---|---|---|
 | NFR-01 | Performance | Proposed targets: first page load within 2 seconds on campus Wi-Fi. Search and filter update within 100 ms on a mid-range phone. API responses within 200 ms at the 95th percentile. Long result lists render incrementally. | Browser performance tools; a load test |
-| NFR-02 | Registration-day traffic | The whole term's data is served from memory. Responses are gzip-compressed, and static assets are cached. Proposed: section payload at most 150 KB gzipped (about 85 KB estimated from current data). | Response headers; payload check |
+| NFR-02 | Registration-day traffic | The whole term's data is served from memory. Responses are gzip-compressed, and static assets are cached. Proposed: section payload at most 150 KB gzipped (111 KB measured on current data). | Response headers; payload check |
 | NFR-03 | Mobile | Responsive down to 375 px wide, with no horizontal page scroll. | Manual check at 375 px |
 | NFR-04 | Accessibility | Target WCAG 2.1 AA: keyboard navigation, focus states, contrast, labels, and a pop-up that traps focus and closes on Esc. Feeds a future VPAT. | Automated audit plus a keyboard walkthrough |
 | NFR-05 | Security | No personal data. No secrets in the repo (`.env.example` only). HTTPS only on Azure. Security headers: CSP, X-Content-Type-Options, Referrer-Policy. Pinned dependencies. Input validation on API params. Feeds a future HECVAT. | Header check; config review; tests |
