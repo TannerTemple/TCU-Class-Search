@@ -7,9 +7,25 @@
 
   <section class="panel" id="results" aria-labelledby="results-heading">
     <h2 id="results-heading">Results</h2>
+
+    <div class="search-field">
+      <label for="search-input">Search</label>
+      <input
+        type="search"
+        id="search-input"
+        name="q"
+        placeholder="Subject, course number, or title"
+        autocomplete="off"
+      >
+    </div>
+
+    <p id="results-message" class="status-message" role="status" aria-live="polite" hidden></p>
+
+    <ul id="results-list" class="results-list" hidden></ul>
   </section>
 
   <section class="panel" id="calendar" aria-labelledby="calendar-heading">
     <h2 id="calendar-heading">My schedule</h2>
+    <p class="status-message">Add a class from search to start your schedule.</p>
   </section>
 {% endblock %}

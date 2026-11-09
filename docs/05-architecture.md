@@ -45,7 +45,7 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 | `app/routes/api.py` | JSON API (FR-35 to FR-38) |
 | `app/search.py` | Section JSON, param validation, and filters |
 | `app/responses.py` | Compression, caching, and security headers |
-| `app/static/js/app.js` | Browser modules: search, calendar, storage (stubs) |
+| `app/static/js/app.js` | Browser modules: search (FR-01, FR-11, FR-12, FR-13, FR-41), calendar and storage (stubs) |
 | `scripts/validate_data.py` | Pre-deploy data check (FR-40) |
 
 ## Search and filter location
