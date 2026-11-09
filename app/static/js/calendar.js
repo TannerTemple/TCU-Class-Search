@@ -1,8 +1,14 @@
 // FR-16, FR-17, FR-20, FR-23: add/remove sections onto a weekly grid, with an
 // Unscheduled list for sections with no set time (BR-10). FR-21, FR-22: BR-08
 // conflicts are warnings only (BR-09) — both sections stay, outlined, with a
-// banner naming them. The schedule lives in memory only; autosave is FR-24 (#13).
+// banner naming them. FR-18, FR-19: swap for another section of the same course
+// and component (BR-11), and hide/show a backup (hidden ones are gray and don't
+// count as conflicts). FR-24 to FR-26: autosaved via storage.js; restores on
+// load, and warns if storage can't save (BR-12). FR-27: every scheduled class,
+// including Unscheduled and hidden ones, gets its own copy button (D-31).
 import { sectionsConflict } from "./conflicts.js";
+import { copyClassNumber } from "./clipboard.js";
+import { storage } from "./storage.js";
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 const DEFAULT_DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri"];
@@ -10,11 +16,26 @@ const DEFAULT_START_HOUR = 8; // FR-20
 const DEFAULT_END_HOUR = 22;
 const HOUR_HEIGHT_PX = 48;
 
-const schedule = new Map(); // class_nbr -> section
+const schedule = new Map(); // class_nbr -> { section, hidden }
 const listeners = [];
+let catalog = [];
+let storageOk = true;
+let restoreNotice = null;
 
 function notify() {
   for (const listener of listeners) listener();
+}
+
+function termCode() {
+  return document.body?.dataset.termCode || "";
+}
+
+function persist() {
+  const items = [...schedule.entries()].map(([classNbr, entry]) => ({
+    class_nbr: classNbr,
+    visible: !entry.hidden,
+  }));
+  storageOk = storage.save(termCode(), items);
 }
 
 export function isScheduled(classNbr) {
@@ -25,10 +46,39 @@ export function onChange(listener) {
   listeners.push(listener);
 }
 
+export function setCatalog(sections) {
+  catalog = sections;
+}
+
+export function getCatalog() {
+  return catalog;
+}
+
+// FR-18, BR-11: another section of the same course and component, not this one.
+export function findAlternates(section, sections) {
+  return sections.filter(
+    (s) =>
+      s.course_code === section.course_code &&
+      s.component_type === section.component_type &&
+      s.class_nbr !== section.class_nbr,
+  );
+}
+
+// FR-42: the lab sections a course lists, besides this one.
+export function findLabs(section, sections) {
+  return sections.filter(
+    (s) =>
+      s.course_code === section.course_code &&
+      s.component_type === "LAB" &&
+      s.class_nbr !== section.class_nbr,
+  );
+}
+
 // FR-16: one entry per class number; adding an already-scheduled section does nothing.
 export function addSection(section) {
   if (schedule.has(section.class_nbr)) return;
-  schedule.set(section.class_nbr, section);
+  schedule.set(section.class_nbr, { section, hidden: false });
+  persist();
   render();
   notify();
 }
@@ -37,6 +87,53 @@ export function addSection(section) {
 // its Add button back.
 export function removeSection(classNbr) {
   if (!schedule.delete(classNbr)) return;
+  persist();
+  render();
+  notify();
+}
+
+// FR-19: toggles a scheduled section gray; hidden sections don't count as conflicts.
+export function toggleHidden(classNbr) {
+  const entry = schedule.get(classNbr);
+  if (!entry) return;
+  entry.hidden = !entry.hidden;
+  persist();
+  render();
+  notify();
+}
+
+// FR-18: replaces a scheduled section with another of the same course and
+// component, keeping its hidden flag.
+export function swapSection(oldClassNbr, newSection) {
+  const entry = schedule.get(oldClassNbr);
+  if (!entry) return;
+  schedule.delete(oldClassNbr);
+  schedule.set(newSection.class_nbr, { section: newSection, hidden: entry.hidden });
+  persist();
+  render();
+  notify();
+}
+
+// FR-25: restores the saved schedule from this term's catalog. Unknown class
+// numbers (e.g. after a data refresh) are dropped with a one-time notice.
+export function restore() {
+  const items = storage.load(termCode());
+  if (!items) return;
+  const byClassNbr = new Map(catalog.map((section) => [section.class_nbr, section]));
+  const dropped = [];
+  for (const item of items) {
+    const section = byClassNbr.get(item.class_nbr);
+    if (section) {
+      schedule.set(item.class_nbr, { section, hidden: !item.visible });
+    } else {
+      dropped.push(item.class_nbr);
+    }
+  }
+  if (dropped.length > 0) {
+    const [noun, verb, aux] =
+      dropped.length === 1 ? ["number", "exists", "was"] : ["numbers", "exist", "were"];
+    restoreNotice = `${dropped.length} saved class ${noun} no longer ${verb} and ${aux} removed: ${dropped.join(", ")}.`;
+  }
   render();
   notify();
 }
@@ -89,16 +186,6 @@ function describeSection(section) {
   return `${section.course_code} section ${section.section}`;
 }
 
-function buildRemoveButton(section, compact) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.className = compact ? "remove-btn remove-btn-compact" : "remove-btn";
-  button.textContent = compact ? "×" : "Remove";
-  button.setAttribute("aria-label", `Remove ${describeSection(section)}`);
-  button.addEventListener("click", () => removeSection(section.class_nbr));
-  return button;
-}
-
 function buildConflictBanner(pairs) {
   const banner = document.createElement("p");
   banner.className = "conflict-banner";
@@ -108,26 +195,33 @@ function buildConflictBanner(pairs) {
   return banner;
 }
 
-// A single row (label + a small remove control) so even a 50-minute block, which
-// is too short to stack lines in, still fits a working Remove button (FR-17).
-// The full detail, and a conflict note, go in the title tooltip instead.
-function buildBlock(section, meeting, conflicted) {
+// A single-line label only; a 50-minute block is too short for interactive
+// controls, so Remove/Hide/Swap/Copy all live in the roomier list below (FR-17
+// to FR-19, FR-27). Full detail, and conflict and incomplete-time notes, go in
+// the title tooltip.
+function buildBlock(entry, meeting, conflicted) {
+  const { section, hidden } = entry;
   const block = document.createElement("div");
-  block.className = conflicted ? "calendar-block calendar-block-conflict" : "calendar-block";
-  const detail = `${describeSection(section)} · ${meeting.text}`;
-  block.title = conflicted ? `${detail} (conflict)` : detail;
+  block.className = "calendar-block";
+  if (hidden) block.classList.add("calendar-block-hidden");
+  if (conflicted) block.classList.add("calendar-block-conflict");
+
+  let detail = `${describeSection(section)} · ${meeting.text}`;
+  if (conflicted) detail += " (conflict)";
+  if (section.meetings_may_be_incomplete) detail += " (meeting times may be incomplete)";
+  block.title = detail;
 
   const label = document.createElement("span");
   label.className = "calendar-block-label";
   label.textContent = `${section.course_code} · ${section.section}`;
-  block.append(label, buildRemoveButton(section, true));
+  block.append(label);
   return block;
 }
 
 // Gives overlapping blocks on the same day their own side-by-side column, so a
-// conflicting pair (same day, same time) is still visible and clickable instead
-// of rendering on top of each other (FR-22: both sections stay and are outlined).
-// Touching times, which don't count as a conflict (BR-08), can still share a slot.
+// conflicting pair (same day, same time) is still visible instead of rendering
+// on top of each other (FR-22: both sections stay and are outlined). Touching
+// times, which don't count as a conflict (BR-08), can still share a slot.
 function layoutDayEntries(entries) {
   const sorted = [...entries].sort((a, b) => a.startMin - b.startMin);
   const placed = [];
@@ -164,8 +258,8 @@ function layoutDayEntries(entries) {
   return placed;
 }
 
-function buildGrid(sections, conflicted) {
-  const { days, startHour, endHour } = computeRange(sections);
+function buildGrid(entries, conflicted) {
+  const { days, startHour, endHour } = computeRange(entries.map((e) => e.section));
   const columnHeight = (endHour - startHour) * HOUR_HEIGHT_PX;
 
   const grid = document.createElement("div");
@@ -197,12 +291,12 @@ function buildGrid(sections, conflicted) {
     column.className = "calendar-day-column";
     column.style.height = `${columnHeight}px`;
 
-    const entries = [];
-    for (const section of sections) {
-      for (const meeting of section.meetings) {
+    const dayEntries = [];
+    for (const entry of entries) {
+      for (const meeting of entry.section.meetings) {
         if (!meeting.days.includes(day)) continue;
-        entries.push({
-          section,
+        dayEntries.push({
+          entry,
           meeting,
           startMin: minutesOf(meeting.start_time),
           endMin: minutesOf(meeting.end_time),
@@ -210,16 +304,16 @@ function buildGrid(sections, conflicted) {
       }
     }
 
-    for (const entry of layoutDayEntries(entries)) {
+    for (const placed of layoutDayEntries(dayEntries)) {
       const block = buildBlock(
-        entry.section,
-        entry.meeting,
-        conflicted.has(entry.section.class_nbr),
+        placed.entry,
+        placed.meeting,
+        conflicted.has(placed.entry.section.class_nbr),
       );
-      block.style.top = `${(entry.startMin / 60 - startHour) * HOUR_HEIGHT_PX}px`;
-      block.style.height = `${((entry.endMin - entry.startMin) / 60) * HOUR_HEIGHT_PX}px`;
-      const widthPct = 100 / entry.columnCount;
-      block.style.left = `calc(${entry.column * widthPct}% + 2px)`;
+      block.style.top = `${(placed.startMin / 60 - startHour) * HOUR_HEIGHT_PX}px`;
+      block.style.height = `${((placed.endMin - placed.startMin) / 60) * HOUR_HEIGHT_PX}px`;
+      const widthPct = 100 / placed.columnCount;
+      block.style.left = `calc(${placed.column * widthPct}% + 2px)`;
       block.style.width = `calc(${widthPct}% - 4px)`;
       column.append(block);
     }
@@ -229,18 +323,106 @@ function buildGrid(sections, conflicted) {
   return grid;
 }
 
-function buildUnscheduledList(sections) {
+function buildCopyButton(classNbr) {
+  const wrapper = document.createElement("span");
+  const button = document.createElement("button");
+  button.type = "button";
+  button.className = "copy-btn";
+  button.textContent = "Copy number";
+  const feedback = document.createElement("span");
+  feedback.className = "copy-feedback";
+  feedback.setAttribute("role", "status");
+  button.addEventListener("click", async () => {
+    const copied = await copyClassNumber(classNbr);
+    feedback.textContent = copied ? "Copied!" : `Copy by hand: ${classNbr}`;
+    window.setTimeout(() => {
+      feedback.textContent = "";
+    }, 4000);
+  });
+  wrapper.append(button, feedback);
+  return wrapper;
+}
+
+// FR-17 to FR-19, FR-27: the full set of controls for one scheduled class —
+// copy, hide/show, swap, and remove — all in one roomy row.
+function buildScheduleRow(entry) {
+  const { section, hidden } = entry;
+  const li = document.createElement("li");
+  li.className = "schedule-row";
+  if (hidden) li.classList.add("schedule-row-hidden");
+
+  const main = document.createElement("div");
+  main.className = "schedule-row-main";
+  const label = document.createElement("span");
+  label.className = "schedule-row-label";
+  label.textContent = describeSection(section);
+  main.append(label);
+
+  const meetingText =
+    section.meetings.length > 0
+      ? section.meetings.map((m) => m.text).join("; ")
+      : "No set time";
+  const meetingChip = document.createElement("span");
+  meetingChip.className = "chip";
+  meetingChip.textContent = meetingText;
+  main.append(meetingChip);
+
+  if (section.meetings_may_be_incomplete) {
+    const note = document.createElement("span");
+    note.className = "chip incomplete-chip";
+    note.textContent = "Meeting times may be incomplete. Check classes.tcu.edu.";
+    main.append(note);
+  }
+
+  const actions = document.createElement("div");
+  actions.className = "schedule-row-actions";
+  actions.append(buildCopyButton(section.class_nbr));
+
+  const hideButton = document.createElement("button");
+  hideButton.type = "button";
+  hideButton.className = "hide-btn";
+  hideButton.textContent = hidden ? "Show" : "Hide";
+  hideButton.setAttribute("aria-pressed", String(hidden));
+  hideButton.addEventListener("click", () => toggleHidden(section.class_nbr));
+  actions.append(hideButton);
+
+  const alternates = findAlternates(section, catalog);
+  if (alternates.length > 0) {
+    const select = document.createElement("select");
+    select.className = "swap-select";
+    select.setAttribute("aria-label", `Swap ${describeSection(section)}`);
+    select.append(new Option("Swap for…", "", true, true));
+    for (const alt of alternates) {
+      const altMeeting = alt.meetings.length > 0 ? alt.meetings.map((m) => m.text).join("; ") : "No set time";
+      select.append(new Option(`Section ${alt.section} · ${altMeeting}`, alt.class_nbr));
+    }
+    select.addEventListener("change", () => {
+      const chosen = alternates.find((alt) => alt.class_nbr === select.value);
+      if (chosen) swapSection(section.class_nbr, chosen);
+    });
+    actions.append(select);
+  }
+
+  const removeButton = document.createElement("button");
+  removeButton.type = "button";
+  removeButton.className = "remove-btn";
+  removeButton.textContent = "Remove";
+  removeButton.setAttribute("aria-label", `Remove ${describeSection(section)}`);
+  removeButton.addEventListener("click", () => removeSection(section.class_nbr));
+  actions.append(removeButton);
+
+  li.append(main, actions);
+  return li;
+}
+
+function buildScheduleList(entries) {
   const wrapper = document.createElement("div");
   const heading = document.createElement("h3");
-  heading.textContent = "Unscheduled";
+  heading.textContent = "Scheduled classes";
   const list = document.createElement("ul");
-  list.className = "unscheduled-list";
-  for (const section of sections) {
-    const item = document.createElement("li");
-    const label = document.createElement("span");
-    label.textContent = describeSection(section);
-    item.append(label, buildRemoveButton(section));
-    list.append(item);
+  list.className = "schedule-list";
+  for (const entry of entries) {
+    list.append(buildScheduleRow(entry));
   }
   wrapper.append(heading, list);
   return wrapper;
@@ -251,8 +433,26 @@ function render() {
   if (!container) return;
   container.textContent = "";
 
-  const sections = [...schedule.values()];
-  if (sections.length === 0) {
+  if (!storageOk) {
+    const warning = document.createElement("p");
+    warning.className = "storage-warning";
+    warning.setAttribute("role", "alert");
+    warning.textContent =
+      "Storage is full or unavailable, so changes to your schedule won't be saved.";
+    container.append(warning);
+  }
+
+  if (restoreNotice) {
+    const notice = document.createElement("p");
+    notice.className = "status-message";
+    notice.setAttribute("role", "status");
+    notice.textContent = restoreNotice;
+    container.append(notice);
+    restoreNotice = null;
+  }
+
+  const entries = [...schedule.values()];
+  if (entries.length === 0) {
     const hint = document.createElement("p");
     hint.className = "status-message";
     hint.textContent = "Add a class from search to start your schedule.";
@@ -261,9 +461,10 @@ function render() {
   }
 
   // BR-10: a section with no set time can't go on the grid or conflict with anything.
-  const onGrid = sections.filter((s) => s.meetings.length > 0);
-  const unscheduled = sections.filter((s) => s.meetings.length === 0);
-  const { conflicted, pairs } = findConflicts(onGrid);
+  const onGrid = entries.filter((e) => e.section.meetings.length > 0);
+  // FR-19: hidden sections don't count as conflicts.
+  const visibleOnGrid = onGrid.filter((e) => !e.hidden).map((e) => e.section);
+  const { conflicted, pairs } = findConflicts(visibleOnGrid);
 
   if (pairs.length > 0) {
     container.append(buildConflictBanner(pairs));
@@ -271,11 +472,10 @@ function render() {
   if (onGrid.length > 0) {
     container.append(buildGrid(onGrid, conflicted));
   }
-  if (unscheduled.length > 0) {
-    container.append(buildUnscheduledList(unscheduled));
-  }
+  container.append(buildScheduleList(entries));
 }
 
 export function init() {
+  storageOk = storage.isAvailable();
   render();
 }

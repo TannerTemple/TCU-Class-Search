@@ -8,7 +8,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from app.models import Section
-from app.timefmt import format_meeting
+from app.timefmt import format_date, format_meeting
 
 LEVEL_BANDS = {  # D-26
     "10000-29999": (10000, 29999),
@@ -90,6 +90,7 @@ def serialize_section(section: Section) -> dict[str, Any]:
         "component_label": section.component_label,
         "core_codes": list(section.core_codes),
         "start_date": section.start_date.isoformat(),
+        "start_date_display": format_date(section.start_date),  # FR-14: "Jan 19, 2027".
         "end_date": section.end_date.isoformat() if section.end_date else None,
         "instruction_mode": section.instruction_mode,
         "status": section.status,

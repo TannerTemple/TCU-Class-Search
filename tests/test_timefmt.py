@@ -1,7 +1,9 @@
+from datetime import date
+
 import pytest
 
 from app.models import Meeting
-from app.timefmt import format_meeting, parse_days, parse_time_range, to_12_hour
+from app.timefmt import format_date, format_meeting, parse_days, parse_time_range, to_12_hour
 
 
 @pytest.mark.parametrize(
@@ -60,3 +62,7 @@ def test_parse_time_range(text: str, expected: tuple[str, str] | None) -> None:
 def test_format_meeting(start: str, end: str, expected: str) -> None:
     meeting = Meeting(days=("Mon", "Wed", "Fri"), start_time=start, end_time=end)
     assert format_meeting(meeting) == expected
+
+
+def test_format_date() -> None:
+    assert format_date(date(2027, 1, 19)) == "Jan 19, 2027"

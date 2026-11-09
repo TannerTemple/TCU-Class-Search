@@ -1,6 +1,7 @@
 // FR-01 to FR-13, FR-41: fetch the sections payload once, then search and filter
 // in the browser (D-19).
 import * as calendar from "./calendar.js";
+import * as popup from "./popup.js";
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -82,11 +83,13 @@ function appendChip(container, text, extraClass) {
 
 // FR-11: course code and title first, section, session if not REG, component label,
 // days/times, Core codes, instruction mode if not In Person, status chip, and Add.
+// FR-14: tapping the course code and title opens the pop-up.
 function buildRow(section, statusAsOf) {
   const li = document.createElement("li");
   li.className = "result-row";
 
-  const head = document.createElement("div");
+  const head = document.createElement("button");
+  head.type = "button";
   head.className = "result-head";
   const code = document.createElement("span");
   code.className = "course-code";
@@ -95,6 +98,7 @@ function buildRow(section, statusAsOf) {
   title.className = "course-title";
   title.textContent = section.title;
   head.append(code, title);
+  head.addEventListener("click", () => popup.open(section, head));
 
   const meta = document.createElement("div");
   meta.className = "result-meta";
@@ -433,6 +437,8 @@ export const search = {
         const response = await fetch("/api/sections");
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
         sections = (await response.json()).sections;
+        calendar.setCatalog(sections);
+        calendar.restore(); // FR-25: restores the saved schedule before the first render.
         filters = buildFilters(filtersContainer, sections, applyFilter, clearAll);
         applyFilter();
       } catch {

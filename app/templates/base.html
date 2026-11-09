@@ -6,7 +6,7 @@
     <title>{% block title %}Classify{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
   </head>
-  <body data-status-as-of="{{ status_as_of|default('') }}">
+  <body data-status-as-of="{{ status_as_of|default('') }}" data-term-code="{{ term.code|default('') }}">
     <header class="site-header">
       <span class="brand">Classify</span>
       <span class="term">{{ term.name }}</span>
@@ -23,6 +23,8 @@
     <footer class="site-footer">
       Unofficial student project. Not affiliated with or endorsed by Texas Christian University.
     </footer>
+
+    <div id="popup-root" hidden></div>
 
     <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
   </body>
