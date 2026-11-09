@@ -6,11 +6,9 @@ from datetime import datetime
 
 from flask import Blueprint, current_app, render_template
 
+from app.timefmt import format_date
+
 pages_bp = Blueprint("pages", __name__)
-
-
-def _format_data_date(value: datetime) -> str:
-    return f"{value:%b} {value.day}, {value.year}"
 
 
 def _format_status_date(value: datetime) -> str:
@@ -24,6 +22,6 @@ def index() -> str:
     return render_template(
         "index.html",
         term=term,
-        data_as_of=_format_data_date(term.scraped_at),
+        data_as_of=format_date(term.scraped_at),
         status_as_of=_format_status_date(term.scraped_at),
     )

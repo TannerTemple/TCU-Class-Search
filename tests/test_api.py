@@ -31,6 +31,7 @@ def test_section_fields_are_ready_for_display(client: FlaskClient) -> None:
     section = client.get("/api/sections/34429").get_json()
     assert section["course_code"] == "ACCT 20353"
     assert section["start_date"] == "2027-01-19"
+    assert section["start_date_display"] == "Jan 19, 2027"
     assert section["meetings"] == [
         {
             "days": ["Mon", "Wed", "Fri"],

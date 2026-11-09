@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+from datetime import date
 
 from app.models import Day, Meeting
 
@@ -41,6 +42,11 @@ def parse_time_range(time_text: str) -> tuple[str, str] | None:
     if match is None:
         return None
     return f"{int(match[1]):02d}:{match[2]}", f"{int(match[3]):02d}:{match[4]}"
+
+
+def format_date(value: date) -> str:
+    """Format a date as "Jan 19, 2027", for the pop-up's Starts field (FR-14)."""
+    return f"{value:%b} {value.day}, {value.year}"
 
 
 def format_meeting(meeting: Meeting) -> str:

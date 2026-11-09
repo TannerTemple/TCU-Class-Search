@@ -45,11 +45,13 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 | `app/routes/api.py` | JSON API (FR-35 to FR-38) |
 | `app/search.py` | Section JSON, param validation, and filters |
 | `app/responses.py` | Compression, caching, and security headers |
-| `app/static/js/app.js` | Entry point: wires up search, calendar, and storage on load |
-| `app/static/js/search.js` | Search and filters (FR-01 to FR-13, FR-41) |
-| `app/static/js/calendar.js` | Weekly grid, add/remove, Unscheduled list, conflicts (FR-16, FR-17, FR-20 to FR-23) |
+| `app/static/js/app.js` | Entry point: wires up search, calendar, popup, and storage on load |
+| `app/static/js/search.js` | Search, filters, and results (FR-01 to FR-14, FR-41) |
+| `app/static/js/calendar.js` | Weekly grid, add/remove/swap/hide, Scheduled classes list, conflicts (FR-16 to FR-23, FR-27, FR-42) |
 | `app/static/js/conflicts.js` | BR-08, the browser twin of `app/conflicts.py` (D-20) |
-| `app/static/js/storage.js` | Autosave and restore (stub, FR-24 to FR-26) |
+| `app/static/js/popup.js` | Same-page class detail pop-up (FR-14, FR-15, FR-33, FR-42, FR-43, NFR-04) |
+| `app/static/js/clipboard.js` | Copy a class number, with a by-hand fallback (FR-15, FR-27) |
+| `app/static/js/storage.js` | Autosave and restore (FR-24 to FR-26) |
 | `scripts/validate_data.py` | Pre-deploy data check (FR-40) |
 
 ## Search and filter location
