@@ -1,4 +1,4 @@
-"""Server-rendered page shell for search and results (FR-01, FR-11, FR-41)."""
+"""Server-rendered page shell for search, filters, and results (FR-01, FR-02 to FR-11, FR-41)."""
 
 import pytest
 from flask.testing import FlaskClient
@@ -15,6 +15,12 @@ def test_page_has_a_search_box(client: FlaskClient) -> None:
     html = client.get("/").get_data(as_text=True)
     assert 'id="search-input"' in html
     assert 'type="search"' in html
+
+
+def test_page_has_a_filters_container(client: FlaskClient) -> None:
+    """FR-02 to FR-09: the filter controls are built client-side from the loaded data (D-19)."""
+    html = client.get("/").get_data(as_text=True)
+    assert 'id="filters-body"' in html
 
 
 def test_page_has_result_state_containers(client: FlaskClient) -> None:
