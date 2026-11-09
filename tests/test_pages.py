@@ -1,4 +1,4 @@
-"""Server-rendered page shell for search, filters, and results (FR-01, FR-02 to FR-11, FR-41)."""
+"""Server-rendered page shell: search, filters, results, and the calendar (FR-01 to FR-23)."""
 
 import pytest
 from flask.testing import FlaskClient
@@ -34,9 +34,11 @@ def test_page_exposes_a_short_status_date_for_js(client: FlaskClient) -> None:
     assert 'data-status-as-of="Nov 8"' in html
 
 
-def test_empty_schedule_hint_shows(client: FlaskClient) -> None:
+def test_page_has_a_calendar_container(client: FlaskClient) -> None:
+    """FR-16, FR-17, FR-20, FR-23: the calendar is built client-side (D-19). It renders
+    the empty-schedule hint itself (FR-41) once the schedule is known to be empty."""
     html = client.get("/").get_data(as_text=True)
-    assert "Add a class from search to start your schedule." in html
+    assert 'id="calendar-body"' in html
 
 
 def test_no_course_materials_or_dead_links(client: FlaskClient) -> None:

@@ -1,0 +1,137 @@
+[
+  {
+    "name": "same day and time REG sections conflict",
+    "a": {
+      "meetings": [{ "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": true
+  },
+  {
+    "name": "touching times do not overlap",
+    "a": {
+      "meetings": [{ "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Mon"], "start_time": "09:50", "end_time": "10:40" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": false
+  },
+  {
+    "name": "8W1 and 8W2 at the same time do not conflict",
+    "a": {
+      "meetings": [{ "days": ["Tue"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": "2027-03-21"
+    },
+    "b": {
+      "meetings": [{ "days": ["Tue"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-03-22",
+      "end_date": null
+    },
+    "conflict": false
+  },
+  {
+    "name": "different days do not conflict",
+    "a": {
+      "meetings": [{ "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Tue"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": false
+  },
+  {
+    "name": "overlapping but not identical times on the same day conflict",
+    "a": {
+      "meetings": [{ "days": ["Wed"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Wed"], "start_time": "09:30", "end_time": "10:20" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": true
+  },
+  {
+    "name": "an unknown end date counts as overlapping",
+    "a": {
+      "meetings": [{ "days": ["Thu"], "start_time": "13:00", "end_time": "13:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Thu"], "start_time": "13:00", "end_time": "13:50" }],
+      "start_date": "2027-02-01",
+      "end_date": "2027-02-05"
+    },
+    "conflict": true
+  },
+  {
+    "name": "an unscheduled section with no meetings never conflicts",
+    "a": {
+      "meetings": [],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": false
+  },
+  {
+    "name": "a section with multiple meetings conflicts if any one meeting overlaps",
+    "a": {
+      "meetings": [
+        { "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" },
+        { "days": ["Wed"], "start_time": "09:00", "end_time": "09:50" }
+      ],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [{ "days": ["Wed"], "start_time": "09:30", "end_time": "10:00" }],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": true
+  },
+  {
+    "name": "no shared day among multiple meetings means no conflict",
+    "a": {
+      "meetings": [
+        { "days": ["Mon"], "start_time": "09:00", "end_time": "09:50" },
+        { "days": ["Wed"], "start_time": "09:00", "end_time": "09:50" }
+      ],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "b": {
+      "meetings": [
+        { "days": ["Tue"], "start_time": "09:00", "end_time": "09:50" },
+        { "days": ["Thu"], "start_time": "09:00", "end_time": "09:50" }
+      ],
+      "start_date": "2027-01-19",
+      "end_date": null
+    },
+    "conflict": false
+  }
+]

@@ -40,12 +40,16 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 | `app/data_loader.py` | Loads, validates, and normalizes data |
 | `app/models.py` | `Term`, `Section`, `Meeting` dataclasses |
 | `app/timefmt.py` | Day and time parsing and formatting |
-| `app/conflicts.py` | BR-08 reference rule (stub) |
+| `app/conflicts.py` | BR-08 reference rule (FR-21) |
 | `app/routes/pages.py` | Page shell at `/` |
 | `app/routes/api.py` | JSON API (FR-35 to FR-38) |
 | `app/search.py` | Section JSON, param validation, and filters |
 | `app/responses.py` | Compression, caching, and security headers |
-| `app/static/js/app.js` | Browser modules: search and filters (FR-01 to FR-13, FR-41), calendar and storage (stubs) |
+| `app/static/js/app.js` | Entry point: wires up search, calendar, and storage on load |
+| `app/static/js/search.js` | Search and filters (FR-01 to FR-13, FR-41) |
+| `app/static/js/calendar.js` | Weekly grid, add/remove, Unscheduled list, conflicts (FR-16, FR-17, FR-20 to FR-23) |
+| `app/static/js/conflicts.js` | BR-08, the browser twin of `app/conflicts.py` (D-20) |
+| `app/static/js/storage.js` | Autosave and restore (stub, FR-24 to FR-26) |
 | `scripts/validate_data.py` | Pre-deploy data check (FR-40) |
 
 ## Search and filter location
@@ -110,9 +114,9 @@ Bumping the key's version lets a later release migrate or discard old data safel
 | Logic | Where it runs | How it stays consistent |
 |---|---|---|
 | Parsing days and times; 12-hour formatting | Python only (`app/timefmt.py`) | The API sends 24-hour `start_time` and `end_time`, plus a ready-made `meeting_text`. The browser doesn't format times |
-| Conflict rule (BR-08) | Browser at runtime; `app/conflicts.py` is the reference | Both must pass the same case file, `tests/fixtures/conflict_cases.json`, to be created with FR-21 |
+| Conflict rule (BR-08) | Browser at runtime (`app/static/js/conflicts.js`); `app/conflicts.py` is the reference | Both pass the same case file, `tests/fixtures/conflict_cases.json` (FR-21) |
 
-The conflict rule must run in the browser because the schedule can't be sent to the server (NFR-06). The Python version is tested with pytest. The JavaScript version is tested with Node's built-in test runner, which needs no npm packages and no build step, and Node is needed only for tests.
+The conflict rule must run in the browser because the schedule can't be sent to the server (NFR-06). The Python version is tested with pytest (`tests/test_conflicts.py`). The JavaScript version is tested with Node's built-in test runner (`tests/js/conflicts.test.mjs`, run with `node --test tests/js`), which needs no npm packages and no build step; CI installs Node only to run it.
 
 ## Date ranges
 
