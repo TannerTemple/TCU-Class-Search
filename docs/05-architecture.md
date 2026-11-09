@@ -43,6 +43,8 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 | `app/conflicts.py` | BR-08 reference rule (stub) |
 | `app/routes/pages.py` | Page shell at `/` |
 | `app/routes/api.py` | JSON API (FR-35 to FR-38) |
+| `app/search.py` | Section JSON, param validation, and filters |
+| `app/responses.py` | Compression, caching, and security headers |
 | `app/static/js/app.js` | Browser modules: search, calendar, storage (stubs) |
 | `scripts/validate_data.py` | Pre-deploy data check (FR-40) |
 
@@ -54,11 +56,38 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 |---|---|---|
 | Speed | No network wait per keystroke | Depends on Wi-Fi during registration |
 | Server load | One compressed fetch per visit | Many requests per student per visit |
-| Payload | About 85 KB gzipped, estimated from current Spring data | Small per request |
+| Payload | 111 KB gzipped, measured on current Spring data | Small per request |
 | Dataset size | 3,926 rows, small enough for a phone | Handles much larger data |
 | Azure quota | Light on CPU, which matters on the Free tier | Heavier |
 
 The API params in FR-36 remain for testing and later use, but the UI doesn't call them on each change. Long result lists render incrementally so the page stays smooth (NFR-01).
+
+## API
+
+| Endpoint | Returns |
+|---|---|
+| `GET /api/health` | `{"status": "ok"}` |
+| `GET /api/meta` | Term, `scraped_at`, source, and record count |
+| `GET /api/sections` | `{"count": n, "sections": [...]}` |
+| `GET /api/sections/<class_nbr>` | One section. 400 if not 5 digits, 404 if unknown |
+
+Fields with no value are left out of section JSON (BR-18). `end_date` is for conflict checks only.
+
+`GET /api/sections` takes these optional params. Bad values and unknown params return 400 with `{"error": "invalid_param", "param": ..., "message": ...}`.
+
+| Param | Format | Example |
+|---|---|---|
+| `q` | Words matched against course code and title, up to 100 characters | `q=intro sociology` |
+| `subject` | A subject in the data | `subject=ACCT` |
+| `days` | Comma-separated day names | `days=Mon,Wed,Fri` |
+| `start_from`, `start_to` | 24-hour `HH:MM`, inclusive | `start_from=09:00` |
+| `status` | `Open` or `Closed` | `status=Open` |
+| `session` | A session code in the data | `session=8W1` |
+| `mode` | An instruction mode in the data | `mode=Online Only` |
+| `level` | `10000-29999`, `30000-49999`, or `50000-plus` | `level=30000-49999` |
+| `core` | Comma-separated Core codes; any may match | `core=HUM,SSC` |
+
+With no params, the response is built and compressed once at startup. It carries an ETag, so a repeat visit can get a 304 with no body. Other responses are compressed per request.
 
 ## Browser storage
 

@@ -65,6 +65,8 @@ app/
   data_loader.py        Load, validate, and normalize data
   models.py             Term, Section, Meeting
   timefmt.py            Time and day handling
+  search.py             Section JSON and filters
+  responses.py          Compression, caching, security headers
   conflicts.py          Conflict rule (stub)
   routes/               Page and API routes
   templates/            Jinja templates

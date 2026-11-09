@@ -10,7 +10,23 @@ A student-built, unofficial replacement for TCU's public class search that combi
 
 ## Status
 
-Docs and scaffold exist. Features are stubs marked with `TODO FR-xx`. The data file in use is Spring 2027; the Fall 2026 file is unused (D-16).
+The server side is built: data loading and cleanup (#5) and the JSON API (#6). The web page is still an empty shell, and `app/static/js/app.js` and `app/conflicts.py` are stubs. Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
+
+**Build order:** #8 (results and search) → #11 (calendar) → #12 (conflicts) → #10 (pop-up) → #13 (autosave, swap, hide) → #14 (hand-off) → #7 (Azure deploy) → get feedback from about 10 students → #9 (filters) and #15 (mobile, accessibility). If most testers will use phones, do #15 before feedback.
+
+**Data:** Build on the current Spring 2027 file. The Fall 2026 file is unused (D-16).
+
+**Not yet:** Don't work on OQ-07, OQ-09, OQ-23, or OQ-24 until the team asks. The team is working with the data it has now.
+
+**Finished setup instructions:** `docs/claude-prompt/first.md` was the one-time setup prompt. Don't follow it. The "For Claude Code" steps at the top of `docs/11-open-questions.md` have already been applied. `docs/10-decisions.md` is the record of what was decided.
+
+## Workflow
+
+1. Pick the next issue. Read its FR IDs in `docs/04-requirements.md`.
+2. Branch from an up-to-date `main`: `feat/<issue-number>-<short-name>`.
+3. Before opening a PR, run `ruff check .`, `ruff format --check .`, `pytest`, and `python scripts/validate_data.py`. CI runs the same checks.
+4. Open one PR per issue, with `Closes #<issue-number>` in the description.
+5. The other teammate approves it, because GitHub doesn't allow approving your own PR.
 
 ## Commands
 
@@ -56,7 +72,6 @@ BR IDs in `docs/02-business-rules.md` are law. In particular:
 - Time, day, and conflict logic are small pure functions.
 - Tests for every parser and for the conflict rule (BR-08).
 - Time formatting lives only in Python; see D-20 for how the conflict rule stays consistent in the browser.
-- When a stub is built, remove its `xfail`. They are strict, so the test fails until you do.
 
 ## Docs
 
