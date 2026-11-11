@@ -1,5 +1,5 @@
 // FR-24, FR-25: the on-disk schedule shape (version, term code, class numbers,
-// and visibility flags only — BR-12, BR-15, BR-17). Run with: node --test tests/js
+// and visibility flags only — BR-12, BR-15, BR-17). Run with: node --test tests/js/*.test.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

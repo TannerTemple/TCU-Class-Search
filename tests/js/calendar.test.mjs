@@ -1,5 +1,5 @@
 // FR-18, FR-42: finding swap alternates and the labs a course lists. Both are
-// pure lookups over the catalog, no DOM involved. Run with: node --test tests/js
+// pure lookups over the catalog, no DOM involved. Run with: node --test tests/js/*.test.mjs
 import assert from "node:assert/strict";
 import { test } from "node:test";
 

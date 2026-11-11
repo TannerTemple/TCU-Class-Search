@@ -1,6 +1,7 @@
 # Disabled: this runs only when started by hand. See docs/08-deployment-azure.md.
 # To enable it:
-#   1. Create the App Service app and set AZURE_WEBAPP_NAME below.
+#   1. The App Service app exists (classify, in classify-rg). Turn on basic auth publishing
+#      credentials so a publish profile can be downloaded (new apps have it off).
 #   2. Add the publish profile as the AZURE_WEBAPP_PUBLISH_PROFILE repository secret.
 #   3. Uncomment the push trigger.
 name: Deploy to Azure App Service
@@ -11,7 +12,7 @@ on:
   #   branches: [main]
 
 env:
-  AZURE_WEBAPP_NAME: TBD
+  AZURE_WEBAPP_NAME: classify
   PYTHON_VERSION: "3.12"
 
 jobs:
@@ -27,9 +28,10 @@ jobs:
           node-version: "20"
       - run: pip install -r requirements-dev.txt
       - run: ruff check .
+      - run: ruff format --check .
       - run: pytest
       - run: python scripts/validate_data.py
-      - run: node --test tests/js
+      - run: node --test tests/js/*.test.mjs
       - uses: azure/webapps-deploy@v3
         with:
           app-name: ${{ env.AZURE_WEBAPP_NAME }}
