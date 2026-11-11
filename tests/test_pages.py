@@ -4,6 +4,7 @@ import pytest
 from flask.testing import FlaskClient
 
 from app import create_app
+from app.routes.pages import time_stops
 
 
 @pytest.fixture
@@ -85,3 +86,32 @@ def test_filters_toggle_controls_the_filters(client: FlaskClient) -> None:
     assert 'id="filters-toggle"' in html
     assert 'aria-controls="filters-body"' in html
     assert 'aria-expanded="false"' in html
+
+
+def test_register_link_opens_class_search_in_a_new_tab(client: FlaskClient) -> None:
+    """FR-28: the hand-off link opens TCU's site in a new tab and sends nothing to it."""
+    html = client.get("/").get_data(as_text=True)
+    assert 'href="https://psb.is.tcu.edu/criteria.jsp"' in html
+    assert "Register on classes.tcu.edu ↗" in html
+    assert 'rel="noopener noreferrer"' in html
+
+
+def test_page_has_a_credit_total_that_starts_hidden(client: FlaskClient) -> None:
+    """D-41, BR-18: the total shows only once a class is scheduled."""
+    html = client.get("/").get_data(as_text=True)
+    assert 'id="credit-total" class="credit-total" hidden' in html
+
+
+def test_time_stops_are_12_hour_and_cover_the_day() -> None:
+    """FR-04, D-20: the start-time slider's labels are formatted in Python."""
+    stops = time_stops()
+    assert stops[0] == ("06:00", "6:00 AM")
+    assert stops[-1] == ("22:00", "10:00 PM")
+    assert ("13:15", "1:15 PM") in stops
+    assert len(stops) == 65
+
+
+def test_page_passes_time_stops_to_the_filters(client: FlaskClient) -> None:
+    html = client.get("/").get_data(as_text=True)
+    assert "data-time-stops='[[" in html
+    assert "12:00 PM" in html

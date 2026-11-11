@@ -69,12 +69,25 @@ def test_subject_filter(client: FlaskClient) -> None:
     assert {s["subject"] for s in matched} == {"ACCT"}
 
 
-def test_days_filter_needs_every_meeting_day_selected(client: FlaskClient) -> None:
-    matched = sections(client, "days=Mon,Wed,Fri")
+def test_days_filter_includes_any_class_meeting_on_a_selected_day(client: FlaskClient) -> None:
+    """FR-03: the default match lists Tue/Thu classes when only Tue is selected."""
+    matched = sections(client, "days=Tue")
+    day_sets = {tuple(m["days"]) for s in matched for m in s["meetings"]}
+    assert ("Tue", "Thu") in day_sets
+    assert ("Mon", "Wed", "Fri") not in day_sets
+    assert all(any("Tue" in m["days"] for m in s["meetings"]) for s in matched)
+
+
+def test_days_match_only_needs_every_meeting_day_selected(client: FlaskClient) -> None:
+    matched = sections(client, "days=Mon,Wed,Fri&days_match=only")
     day_sets = {tuple(m["days"]) for s in matched for m in s["meetings"]}
     assert ("Mon", "Wed", "Fri") in day_sets
     assert ("Tue", "Thu") not in day_sets
     assert all(s["meetings"] for s in matched)
+
+
+def test_days_filter_skips_unscheduled_sections(client: FlaskClient) -> None:
+    assert all(s["meetings"] for s in sections(client, "days=Mon,Tue,Wed,Thu,Fri,Sat,Sun"))
 
 
 def test_start_time_range_is_inclusive_and_skips_unscheduled(client: FlaskClient) -> None:
@@ -104,6 +117,14 @@ def test_core_filter_matches_any_selected_code(client: FlaskClient) -> None:
     assert all({"HUM", "SSC"} & set(s["core_codes"]) for s in matched)
 
 
+def test_core_match_all_needs_every_selected_code(client: FlaskClient) -> None:
+    """FR-09: CA and GA together lists only sections carrying both codes."""
+    matched = sections(client, "core=CA,GA&core_match=all")
+    assert len(matched) == 6
+    assert all({"CA", "GA"} <= set(s["core_codes"]) for s in matched)
+    assert len(sections(client, "core=CA,GA")) > len(matched)
+
+
 def test_filters_combine(client: FlaskClient) -> None:
     matched = sections(client, "subject=ACCT&status=Open&q=fundamentals")
     assert matched
@@ -123,7 +144,9 @@ def test_no_matches_is_an_empty_list(client: FlaskClient) -> None:
         "session=ZZZ",
         "mode=Teleport",
         "days=Monday",
+        "days=Tue&days_match=all",
         "core=NOPE",
+        "core=CA&core_match=both",
         "start_from=9am",
         "start_to=25:00",
         "start_from=12:00&start_to=09:00",

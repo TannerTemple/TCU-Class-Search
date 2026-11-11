@@ -36,6 +36,7 @@ Last updated: 2026-11-08, after the team's open-questions review (recording: "Te
 | OQ-22 | Keep or remove the empty `requirements/` folder? | Team | — | **Closed.** Delete it |
 | OQ-23 | Python versions on App Service | Team | Deployment | **Closed.** 3.11 through 3.15 are offered. The app runs 3.12 to match CI (D-40) |
 | OQ-24 | Fix the scraper to write one row per meeting, then rescrape | Team | FR-21, FR-43 | **Open.** Do before launch if possible |
+| OQ-25 | BR-01 says the app "ends with a hand-off to my.tcu.edu", but the register link now opens `psb.is.tcu.edu/criteria.jsp` (D-42). Is that the right destination, and should BR-01 name it? | Team | BR-01, FR-28 | **Open** |
 
 ## Answer details
 
