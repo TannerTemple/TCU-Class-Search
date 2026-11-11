@@ -93,7 +93,19 @@ This was done on Nov 11, 2026. It's kept here in case the app ever has to be reb
 
 ## Deploy
 
-### Manual (current)
+### Automatic (GitHub Actions)
+
+`.github/workflows/azure-deploy.yml` deploys every push to `main` once lint, the format check, tests, data validation, and the JavaScript tests pass. It can also be started by hand from the Actions tab. It signs in with the `AZURE_WEBAPP_PUBLISH_PROFILE` repository secret, which needs basic auth publishing credentials turned on for the app (`scm` only; FTP stays off):
+
+```sh
+az resource update -g classify-rg --namespace Microsoft.Web --resource-type basicPublishingCredentialsPolicies \
+  --parent sites/classify --name scm --set properties.allow=true
+az webapp deployment list-publishing-profiles -g classify-rg -n classify --xml | gh secret set AZURE_WEBAPP_PUBLISH_PROFILE
+```
+
+If the profile leaks, reset it in the portal (the app's overview page, "Reset publish profile") and run the second command again. Never commit it or paste it anywhere else (NFR-05).
+
+### Manual fallback
 
 From an up-to-date `main`. `git archive` zips only tracked files, so `.venv`, `.env`, and local files stay out:
 
@@ -105,17 +117,6 @@ az webapp deploy -g classify-rg -n classify --src-path /tmp/classify.zip --type 
 ```
 
 The deploy takes about a minute: Oryx builds, then the site restarts.
-
-### GitHub Actions (off)
-
-`.github/workflows/azure-deploy.yml` is disabled and runs only when started by hand. `AZURE_WEBAPP_NAME` is already set to `classify`. To enable it:
-
-1. Turn on basic auth publishing credentials for the app. New apps have them off, and the publish profile needs them.
-2. Download the publish profile from the Azure portal.
-3. Save it as the `AZURE_WEBAPP_PUBLISH_PROFILE` repository secret.
-4. Uncomment the `push` trigger.
-
-The workflow runs lint, the format check, tests, data validation, and the JavaScript tests before it deploys.
 
 ## Configuration
 

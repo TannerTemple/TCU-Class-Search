@@ -1,15 +1,11 @@
-# Disabled: this runs only when started by hand. See docs/08-deployment-azure.md.
-# To enable it:
-#   1. The App Service app exists (classify, in classify-rg). Turn on basic auth publishing
-#      credentials so a publish profile can be downloaded (new apps have it off).
-#   2. Add the publish profile as the AZURE_WEBAPP_PUBLISH_PROFILE repository secret.
-#   3. Uncomment the push trigger.
+# Deploys every push to main, after the checks pass. It can also be started by hand.
+# Needs the AZURE_WEBAPP_PUBLISH_PROFILE repository secret. See docs/08-deployment-azure.md.
 name: Deploy to Azure App Service
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: [main]
+  push:
+    branches: [main]
 
 env:
   AZURE_WEBAPP_NAME: classify
