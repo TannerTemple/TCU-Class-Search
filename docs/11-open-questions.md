@@ -34,7 +34,7 @@ Last updated: 2026-11-08, after the team's open-questions review (recording: "Te
 | OQ-20 | Data age for the stale warning | Team | FR-31 | **Closed.** No stale warning in the MVP; data stays static |
 | OQ-21 | ADM vs ACCT as the first subject | Team | D-07 | **Closed.** ACCT is correct; ADM was only an example |
 | OQ-22 | Keep or remove the empty `requirements/` folder? | Team | — | **Closed.** Delete it |
-| OQ-23 | Python versions on App Service | Team | Deployment | **Open.** The command failed on an expired Azure login; re-run it after logging in |
+| OQ-23 | Python versions on App Service | Team | Deployment | **Closed.** 3.11 through 3.15 are offered. The app runs 3.12 to match CI (D-40) |
 | OQ-24 | Fix the scraper to write one row per meeting, then rescrape | Team | FR-21, FR-43 | **Open.** Do before launch if possible |
 
 ## Answer details
@@ -172,11 +172,7 @@ Last updated: 2026-11-08, after the team's open-questions review (recording: "Te
 ### OQ-22 — Empty `requirements/` folder
 - **Answer:** Delete it. Dependencies live in `requirements.txt`.
 
-### OQ-23 — Python versions on App Service (Open)
-- **What happened:** `az webapp list-runtimes` didn't return runtimes. The Azure CLI login had expired, because the refresh token was inactive for 90 days.
-- **Next steps (team):**
-  1. Run `az login`.
-  2. Run `az webapp list-runtimes --os linux -o table`.
-  3. Paste the Python versions here.
+### OQ-23 — Python versions on App Service (Closed)
+- **Answer (Nov 11, 2026):** after `az login`, `az webapp list-runtimes --os linux` listed PYTHON:3.11, 3.12, 3.13, 3.14, and 3.15.
+- **Decision:** run 3.12, the version CI tests (D-40).
 - **Note:** the CLI warns that this command's output format changes in Azure CLI 2.86.0. Use `-o table` to read it, or `-o json` for scripts.
-- **Until then:** target Python 3.12.

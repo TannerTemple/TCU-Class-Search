@@ -118,7 +118,7 @@ Bumping the key's version lets a later release migrate or discard old data safel
 | Parsing days and times; 12-hour formatting | Python only (`app/timefmt.py`) | The API sends 24-hour `start_time` and `end_time`, plus a ready-made `meeting_text`. The browser doesn't format times |
 | Conflict rule (BR-08) | Browser at runtime (`app/static/js/conflicts.js`); `app/conflicts.py` is the reference | Both pass the same case file, `tests/fixtures/conflict_cases.json` (FR-21) |
 
-The conflict rule must run in the browser because the schedule can't be sent to the server (NFR-06). The Python version is tested with pytest (`tests/test_conflicts.py`). The JavaScript version is tested with Node's built-in test runner (`tests/js/conflicts.test.mjs`, run with `node --test tests/js`), which needs no npm packages and no build step; CI installs Node only to run it.
+The conflict rule must run in the browser because the schedule can't be sent to the server (NFR-06). The Python version is tested with pytest (`tests/test_conflicts.py`). The JavaScript version is tested with Node's built-in test runner (`tests/js/conflicts.test.mjs`, run with `node --test tests/js/*.test.mjs`), which needs no npm packages and no build step; CI installs Node only to run it.
 
 ## Date ranges
 

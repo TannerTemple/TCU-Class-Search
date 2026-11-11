@@ -1,5 +1,5 @@
 // BR-08 conflict rule, verified against the shared fixture used by the Python
-// version (D-20). Run with: node --test tests/js
+// version (D-20). Run with: node --test tests/js/*.test.mjs
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";

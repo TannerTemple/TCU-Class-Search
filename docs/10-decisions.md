@@ -43,3 +43,4 @@ D-01 to D-14 came from the Nov 8, 2026 kickoff. D-15 to D-18 are team answers gi
 | D-37 | 2026-11-08 | No open-source license for now. The README states all rights reserved | OQ-07 stays open |
 | D-38 | 2026-11-08 | After launch, work with TCU on `classify.tcu.edu`, or on Classify taking over `classes.tcu.edu` | OQ-06. The Azure default URL is used until then |
 | D-39 | 2026-11-08 | Anonymous analytics are not in the MVP | OQ-09 stays open for later |
+| D-40 | 2026-11-11 | Host at `classify.azurewebsites.net`: app `classify` in resource group `classify-rg`, on a Free (F1) Linux plan in East US 2, running Python 3.12 | The subscription allows only five US and Canada regions, and only `eastus2` had F1 quota. The name has no "TCU" in it, so the site doesn't look official (BR-16). See [deployment](08-deployment-azure.md) |

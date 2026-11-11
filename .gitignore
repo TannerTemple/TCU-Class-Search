@@ -10,6 +10,7 @@ venv/
 
 # Local settings
 .env
+.vscode
 
 # OS files
 .DS_Store
