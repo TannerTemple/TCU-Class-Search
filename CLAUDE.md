@@ -10,7 +10,7 @@ A student-built, unofficial replacement for TCU's public class search that combi
 
 ## Status
 
-Built so far: data loading and cleanup (#5), the JSON API (#6), the results list with search and filters (#8, #9), the weekly calendar with add, remove, swap, hide, and BR-08 conflicts (#11, #12, #13), the class detail pop-up (#10), and the hand-off (copy, the my.tcu.edu link, and the timestamp and snapshot labels, which already existed) (#14). Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
+Built so far: data loading and cleanup (#5), the JSON API (#6), the results list with search and filters (#8, #9), the weekly calendar with add, remove, swap, hide, and BR-08 conflicts (#11, #12, #13), the class detail pop-up (#10), and the hand-off (copy, the my.tcu.edu link, and the timestamp and snapshot labels, which already existed) (#14). Mobile tabs and the accessibility pass (#15). Remaining work is tracked in GitHub issues under the `Spring 2027 MVP` milestone.
 
 **Build order:** #7 (Azure deploy) → get feedback from about 10 students → #15 (mobile, accessibility). If most testers will use phones, do #15 before feedback.
 

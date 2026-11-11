@@ -45,7 +45,9 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 | `app/routes/api.py` | JSON API (FR-35 to FR-38) |
 | `app/search.py` | Section JSON, param validation, and filters |
 | `app/responses.py` | Compression, caching, and security headers |
-| `app/static/js/app.js` | Entry point: wires up search, calendar, popup, and storage on load |
+| `app/static_version.py` | Serves static files under `/assets/<hash>/` so a deploy changes every asset URL at once (NFR-02) |
+| `app/static/js/app.js` | Entry point: wires up search, calendar, mobile tabs, popup, and storage on load |
+| `app/static/js/mobile.js` | Search and My schedule tabs, the badge, and the add toast on narrow screens (FR-34, NFR-03, NFR-04) |
 | `app/static/js/search.js` | Search, filters, and results (FR-01 to FR-14, FR-41) |
 | `app/static/js/calendar.js` | Weekly grid, add/remove/swap/hide, Scheduled classes list, conflicts (FR-16 to FR-23, FR-27, FR-42) |
 | `app/static/js/conflicts.js` | BR-08, the browser twin of `app/conflicts.py` (D-20) |
@@ -67,6 +69,10 @@ my.tcu.edu and Rate My Professor are external. The app sends them nothing.
 | Azure quota | Light on CPU, which matters on the Free tier | Heavier |
 
 The API params in FR-36 remain for testing and later use, but the UI doesn't call them on each change. Long result lists render incrementally so the page stays smooth (NFR-01).
+
+## Static asset versions
+
+Static files are cached for an hour (NFR-02). The JavaScript modules import each other by relative path, so a plain `/static/js/app.js` URL could pair a new `app.js` with a cached old `calendar.js` right after a deploy, and the page would fail to load. The page instead loads its CSS and JavaScript from `/assets/<hash>/`, where the hash covers every static file. Relative imports inherit the same path, so a deploy changes every asset URL together. Any hash is accepted, so a page loaded just before a deploy still gets its files. Plain `/static/...` still works.
 
 ## API
 

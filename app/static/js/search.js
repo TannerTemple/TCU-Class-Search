@@ -73,6 +73,21 @@ function matchesFilters(section, filters) {
   return matchesQuery(section, filters.terms);
 }
 
+function setAddState(button, scheduled) {
+  const state = calendar.addButtonState(scheduled, button.dataset.label);
+  button.textContent = state.text;
+  button.setAttribute("aria-label", state.ariaLabel);
+  button.setAttribute("aria-disabled", state.ariaDisabled);
+}
+
+// A schedule change flips the matching rows' Add buttons in place. Re-rendering
+// the list would destroy the focused button (NFR-04) and the pop-up's opener.
+function syncAddButtons() {
+  for (const button of document.querySelectorAll("#results-list .add-btn[data-class-nbr]")) {
+    setAddState(button, calendar.isScheduled(button.dataset.classNbr));
+  }
+}
+
 function appendChip(container, text, extraClass) {
   if (!text) return; // BR-18: fields with no value render nothing.
   const chip = document.createElement("span");
@@ -125,17 +140,14 @@ function buildRow(section, statusAsOf) {
   const addButton = document.createElement("button");
   addButton.type = "button";
   addButton.className = "add-btn";
-  const scheduled = calendar.isScheduled(section.class_nbr);
-  addButton.textContent = scheduled ? "Added ✓" : "Add";
-  addButton.setAttribute("aria-pressed", String(scheduled));
-  addButton.disabled = scheduled;
+  addButton.dataset.classNbr = section.class_nbr;
+  addButton.dataset.label = calendar.describeSection(section);
+  setAddState(addButton, calendar.isScheduled(section.class_nbr));
   // FR-16: one entry per class number. A second add does nothing (UC-05); the
   // student removes it from the calendar instead (FR-17).
   addButton.addEventListener("click", () => {
-    calendar.addSection(section);
-    addButton.textContent = "Added ✓";
-    addButton.setAttribute("aria-pressed", "true");
-    addButton.disabled = true;
+    if (calendar.isScheduled(section.class_nbr)) return;
+    calendar.addSection(section); // The onChange listener flips this button.
   });
 
   li.append(head, meta, addButton);
@@ -273,10 +285,7 @@ function buildFilters(container, sections, onChange, onClearAll) {
     daysFieldset.append(row);
   }
 
-  const timeWrap = document.createElement("div");
-  timeWrap.className = "filter-group";
-  const timeLabel = document.createElement("span");
-  timeLabel.textContent = "Start time";
+  const timeWrap = createFieldset("Start time");
   const startFrom = document.createElement("input");
   startFrom.type = "time";
   startFrom.id = "filter-start-from";
@@ -285,7 +294,10 @@ function buildFilters(container, sections, onChange, onClearAll) {
   startTo.type = "time";
   startTo.id = "filter-start-to";
   startTo.setAttribute("aria-label", "Latest start time");
-  timeWrap.append(timeLabel, startFrom, document.createTextNode(" to "), startTo);
+  const timeRow = document.createElement("div");
+  timeRow.className = "time-range";
+  timeRow.append(startFrom, document.createTextNode(" to "), startTo);
+  timeWrap.append(timeRow);
 
   const statusFieldset = createFieldset("Status");
   const statusInputs = [];
@@ -425,9 +437,9 @@ export const search = {
       );
     };
 
-    // A schedule change (add, or remove from the calendar) can change which rows
-    // should read "Added ✓", so re-render the currently filtered list to match.
-    calendar.onChange(() => applyFilter());
+    // A schedule change (add, remove, swap, or restore) can change which rows
+    // should read "Added ✓".
+    calendar.onChange(syncAddButtons);
 
     // FR-41: loading and data-load-error states.
     const load = async () => {

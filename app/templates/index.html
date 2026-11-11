@@ -1,32 +1,50 @@
 {% extends "base.html" %}
 
-{% block content %}
-  <section class="panel" id="filters" aria-labelledby="filters-heading">
-    <h2 id="filters-heading">Filters</h2>
-    <div id="filters-body"></div>
-  </section>
-
-  <section class="panel" id="results" aria-labelledby="results-heading">
-    <h2 id="results-heading">Results</h2>
-
-    <div class="search-field">
-      <label for="search-input">Search</label>
-      <input
-        type="search"
-        id="search-input"
-        name="q"
-        placeholder="Subject, course number, or title"
-        autocomplete="off"
-      >
+{% block nav %}
+  {# FR-34: shown only on narrow screens; mobile.js adds the tab panel roles there. #}
+  <nav class="mobile-tabs" aria-label="Views">
+    <div role="tablist">
+      <button type="button" role="tab" id="tab-search" data-panel="search-panel" aria-controls="search-panel" aria-selected="true">Search</button>
+      <button type="button" role="tab" id="tab-schedule" data-panel="calendar" aria-controls="calendar" aria-selected="false" tabindex="-1">
+        My schedule<span id="schedule-badge-text" class="visually-hidden"></span>
+        <span id="schedule-badge" class="tab-badge" aria-hidden="true" hidden></span>
+      </button>
     </div>
+  </nav>
+{% endblock %}
 
-    <p id="results-message" class="status-message" role="status" aria-live="polite" hidden></p>
+{% block content %}
+  <div id="search-panel" class="search-panel">
+    <section class="panel" id="filters" aria-labelledby="filters-heading">
+      <div class="filters-head">
+        <h2 id="filters-heading">Filters</h2>
+        <button type="button" id="filters-toggle" class="filters-toggle" aria-expanded="false" aria-controls="filters-body">Show filters</button>
+      </div>
+      <div id="filters-body"></div>
+    </section>
 
-    <ul id="results-list" class="results-list" hidden></ul>
-  </section>
+    <section class="panel" id="results" aria-labelledby="results-heading">
+      <h2 id="results-heading">Results</h2>
+
+      <div class="search-field">
+        <label for="search-input">Search</label>
+        <input
+          type="search"
+          id="search-input"
+          name="q"
+          placeholder="Subject, course number, or title"
+          autocomplete="off"
+        >
+      </div>
+
+      <p id="results-message" class="status-message" role="status" aria-live="polite" hidden></p>
+
+      <ul id="results-list" class="results-list" aria-labelledby="results-heading" hidden></ul>
+    </section>
+  </div>
 
   <section class="panel" id="calendar" aria-labelledby="calendar-heading">
-    <h2 id="calendar-heading">My schedule</h2>
+    <h2 id="calendar-heading" tabindex="-1">My schedule</h2>
     <a
       class="register-link"
       href="https://my.tcu.edu"

@@ -15,6 +15,18 @@
 
 The tabs are **Search** and **My schedule** (FR-34). Add gives visible feedback: a toast and a badge count on the My schedule tab. The layout works down to 375 px (NFR-03).
 
+| Element | Rule |
+|---|---|
+| Breakpoint | 768 px and narrower. Wider screens show both panels and no tabs |
+| Tab bar | Sticks to the top under the header. Follows the WAI-ARIA tabs pattern: arrow keys, Home, and End move between tabs |
+| Search tab | Filters and results. Filters start collapsed behind "Show filters" |
+| My schedule tab | Calendar, Scheduled classes list, and the register link |
+| Badge | Counts every scheduled class, including hidden and Unscheduled ones. Hidden at 0 (BR-18). Screen readers hear "My schedule, 2 classes" |
+| Toast | "Added ECON 10223 section 010 to My schedule", for 3 seconds, at the bottom. Only on the Search tab, since My schedule shows the add itself. Announced to screen readers. Taps pass through it |
+| Calendar blocks | Labels wrap ("ACCT 20353 · 002") instead of cutting off |
+| Pop-up | A bottom sheet at full width |
+| Touch targets | At least 40 px tall for Add, Copy, Hide, Remove, Swap, and filter controls |
+
 ## Result row
 
 | Element | Rule |
@@ -73,6 +85,16 @@ Opens on the same page. Esc and an outside click close it. It traps focus while 
 | Empty schedule | Hint: add a class from search |
 | Storage unavailable | Warning that the schedule won't be saved (FR-26) |
 | Data load error | Message in place of the list, with a retry |
+
+## Accessibility (NFR-04)
+
+Target: WCAG 2.1 AA.
+
+- Keyboard: every control is reachable. A skip link jumps past the filters to the search box.
+- Focus: one visible focus ring everywhere. Add, Remove, Hide, and Swap keep focus in place; when a removed row's controls are gone, focus moves to the "Scheduled classes" heading. "Added ✓" uses `aria-disabled`, not `disabled`, so the pressed button keeps focus.
+- Names: each Add, Copy, Hide, and Remove button names its class, e.g. "Add ECON 10223 section 010". The name starts with the visible text.
+- Pop-up: traps focus, closes on Esc, returns focus to the row, and makes the rest of the page `inert` while open.
+- Color: text is at least 4.5:1 and control borders at least 3:1. Hidden backups use a gray fill and a dashed border, not transparency. Conflicts also show a "Conflict" chip and the banner, not only a red outline.
 
 ## Visual direction
 
