@@ -48,3 +48,40 @@ def test_no_course_materials_or_dead_links(client: FlaskClient) -> None:
     assert 'href=""' not in html
     assert "href='#'" not in html
     assert 'href="#"' not in html
+
+
+def test_mobile_tabs_point_at_real_panels(client: FlaskClient) -> None:
+    """FR-34: Search and My schedule tabs, each controlling a panel on the page."""
+    html = client.get("/").get_data(as_text=True)
+    assert 'role="tablist"' in html
+    for tab_id, panel_id in (("tab-search", "search-panel"), ("tab-schedule", "calendar")):
+        assert f'id="{tab_id}"' in html
+        assert f'aria-controls="{panel_id}"' in html
+        assert f'id="{panel_id}"' in html
+
+
+def test_schedule_badge_starts_hidden(client: FlaskClient) -> None:
+    """FR-34, BR-18: the badge shows only once a class is scheduled."""
+    html = client.get("/").get_data(as_text=True)
+    assert 'id="schedule-badge" class="tab-badge" aria-hidden="true" hidden' in html
+
+
+def test_page_has_a_toast_live_region(client: FlaskClient) -> None:
+    """FR-34: the add toast is announced, so it is a live region that is always rendered."""
+    html = client.get("/").get_data(as_text=True)
+    assert '<div id="toast" class="toast" role="status" aria-live="polite"></div>' in html
+
+
+def test_page_has_one_h1_and_a_skip_link(client: FlaskClient) -> None:
+    """NFR-04: one page heading, and a skip link past the filters to the search box."""
+    html = client.get("/").get_data(as_text=True)
+    assert html.count("<h1") == 1
+    assert 'class="skip-link" href="#search-input"' in html
+
+
+def test_filters_toggle_controls_the_filters(client: FlaskClient) -> None:
+    """NFR-03: on narrow screens the long filter list collapses behind a button."""
+    html = client.get("/").get_data(as_text=True)
+    assert 'id="filters-toggle"' in html
+    assert 'aria-controls="filters-body"' in html
+    assert 'aria-expanded="false"' in html

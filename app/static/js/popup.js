@@ -15,6 +15,7 @@ const FOCUSABLE_SELECTOR = 'button, a[href], select, input, [tabindex]:not([tabi
 
 let openerElement = null;
 let onKeydown = null;
+let inertElements = [];
 
 function root() {
   return document.getElementById("popup-root");
@@ -52,6 +53,7 @@ function buildCopyRow(classNbr) {
   button.type = "button";
   button.className = "copy-btn";
   button.textContent = "Copy";
+  button.setAttribute("aria-label", `Copy class number ${classNbr}`);
   const feedback = document.createElement("span");
   feedback.className = "copy-feedback";
   feedback.setAttribute("role", "status");
@@ -79,6 +81,7 @@ function buildLabsHint(section) {
   toggle.className = "message-action";
   const plural = labs.length === 1 ? "" : "s";
   toggle.textContent = `This course also lists ${labs.length} lab section${plural}`;
+  toggle.setAttribute("aria-expanded", "false");
 
   const list = document.createElement("ul");
   list.className = "popup-labs-list";
@@ -90,19 +93,27 @@ function buildLabsHint(section) {
     const addButton = document.createElement("button");
     addButton.type = "button";
     addButton.className = "add-btn";
-    const scheduled = calendar.isScheduled(lab.class_nbr);
-    addButton.textContent = scheduled ? "Added ✓" : "Add";
-    addButton.disabled = scheduled;
+    const setState = () => {
+      const state = calendar.addButtonState(
+        calendar.isScheduled(lab.class_nbr),
+        calendar.describeSection(lab),
+      );
+      addButton.textContent = state.text;
+      addButton.setAttribute("aria-label", state.ariaLabel);
+      addButton.setAttribute("aria-disabled", state.ariaDisabled);
+    };
+    setState();
     addButton.addEventListener("click", () => {
+      if (calendar.isScheduled(lab.class_nbr)) return;
       calendar.addSection(lab);
-      addButton.textContent = "Added ✓";
-      addButton.disabled = true;
+      setState();
     });
     item.append(label, addButton);
     list.append(item);
   }
   toggle.addEventListener("click", () => {
     list.hidden = !list.hidden;
+    toggle.setAttribute("aria-expanded", String(!list.hidden));
   });
   wrapper.append(toggle, list);
   return wrapper;
@@ -113,7 +124,12 @@ function buildAddRemoveButton(section) {
   button.type = "button";
   button.className = "add-btn";
   const refresh = () => {
-    button.textContent = calendar.isScheduled(section.class_nbr) ? "Remove" : "Add";
+    const scheduled = calendar.isScheduled(section.class_nbr);
+    button.textContent = scheduled ? "Remove" : "Add";
+    button.setAttribute(
+      "aria-label",
+      `${scheduled ? "Remove" : "Add"} ${calendar.describeSection(section)}`,
+    );
   };
   refresh();
   button.addEventListener("click", () => {
@@ -225,6 +241,13 @@ export function open(section, opener) {
   container.append(backdrop);
   container.hidden = false;
 
+  // NFR-04: everything behind the dialog is unreachable while it's open. The
+  // toast stays live so an Add from the pop-up is still announced (FR-34).
+  inertElements = [...document.body.children].filter(
+    (el) => el !== container && el.id !== "toast" && el.tagName !== "SCRIPT" && !el.inert,
+  );
+  for (const el of inertElements) el.inert = true;
+
   onKeydown = (event) => {
     if (event.key === "Escape") {
       close();
@@ -253,6 +276,8 @@ export function close() {
   if (!container || container.hidden) return;
   container.textContent = "";
   container.hidden = true;
+  for (const el of inertElements) el.inert = false;
+  inertElements = [];
   if (onKeydown) document.removeEventListener("keydown", onKeydown);
   onKeydown = null;
   if (openerElement && typeof openerElement.focus === "function") {

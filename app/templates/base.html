@@ -4,17 +4,21 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>{% block title %}Classify{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('versioned_static', version=static_version, filename='css/app.css') }}">
   </head>
   <body data-status-as-of="{{ status_as_of|default('') }}" data-term-code="{{ term.code|default('') }}">
+    <a class="skip-link" href="#search-input">Skip to search</a>
+
     <header class="site-header">
-      <span class="brand">Classify</span>
+      <h1 class="brand">Classify</h1>
       <span class="term">{{ term.name }}</span>
       <span class="data-as-of">
         Class data as of
         <time datetime="{{ term.scraped_at.isoformat() }}">{{ data_as_of }}</time>
       </span>
     </header>
+
+    {% block nav %}{% endblock %}
 
     <main class="layout">
       {% block content %}{% endblock %}
@@ -26,6 +30,8 @@
 
     <div id="popup-root" hidden></div>
 
-    <script type="module" src="{{ url_for('static', filename='js/app.js') }}"></script>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script type="module" src="{{ url_for('versioned_static', version=static_version, filename='js/app.js') }}"></script>
   </body>
 </html>

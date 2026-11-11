@@ -6,6 +6,8 @@
 // count as conflicts). FR-24 to FR-26: autosaved via storage.js; restores on
 // load, and warns if storage can't save (BR-12). FR-27: every scheduled class,
 // including Unscheduled and hidden ones, gets its own copy button (D-31).
+// NFR-04: a re-render keeps keyboard focus on the same control, or moves it to
+// a heading when that control is gone, so focus never falls back to the page.
 import { sectionsConflict } from "./conflicts.js";
 import { copyClassNumber } from "./clipboard.js";
 import { storage } from "./storage.js";
@@ -21,9 +23,12 @@ const listeners = [];
 let catalog = [];
 let storageOk = true;
 let restoreNotice = null;
+let pendingFocusKey = null;
 
-function notify() {
-  for (const listener of listeners) listener();
+// Listeners get an event: { type: "add", section }, or { type: "remove" |
+// "hide" | "swap" | "restore" }. FR-34 uses "add" for the mobile toast.
+function notify(event) {
+  for (const listener of listeners) listener(event);
 }
 
 function termCode() {
@@ -40,6 +45,21 @@ function persist() {
 
 export function isScheduled(classNbr) {
   return schedule.has(classNbr);
+}
+
+// FR-16: "Add" or "Added ✓". NFR-04: aria-disabled, not disabled, so a button
+// that was just pressed keeps keyboard focus. The accessible name starts with
+// the visible text and names the class, since every row has its own Add.
+export function addButtonState(scheduled, label) {
+  return scheduled
+    ? { text: "Added ✓", ariaLabel: `Added: ${label}`, ariaDisabled: "true" }
+    : { text: "Add", ariaLabel: `Add ${label}`, ariaDisabled: "false" };
+}
+
+// FR-34: the badge on the My schedule tab counts every scheduled section,
+// including hidden and Unscheduled ones.
+export function scheduledCount() {
+  return schedule.size;
 }
 
 export function onChange(listener) {
@@ -80,7 +100,7 @@ export function addSection(section) {
   schedule.set(section.class_nbr, { section, hidden: false });
   persist();
   render();
-  notify();
+  notify({ type: "add", section });
 }
 
 // FR-17: leaves the calendar; the caller's own row listens via onChange to flip
@@ -89,7 +109,7 @@ export function removeSection(classNbr) {
   if (!schedule.delete(classNbr)) return;
   persist();
   render();
-  notify();
+  notify({ type: "remove" });
 }
 
 // FR-19: toggles a scheduled section gray; hidden sections don't count as conflicts.
@@ -99,7 +119,7 @@ export function toggleHidden(classNbr) {
   entry.hidden = !entry.hidden;
   persist();
   render();
-  notify();
+  notify({ type: "hide" });
 }
 
 // FR-18: replaces a scheduled section with another of the same course and
@@ -109,9 +129,11 @@ export function swapSection(oldClassNbr, newSection) {
   if (!entry) return;
   schedule.delete(oldClassNbr);
   schedule.set(newSection.class_nbr, { section: newSection, hidden: entry.hidden });
+  // NFR-04: keep focus on the swap control, now on the new section's row.
+  pendingFocusKey = `swap-${newSection.class_nbr}`;
   persist();
   render();
-  notify();
+  notify({ type: "swap" });
 }
 
 // FR-25: restores the saved schedule from this term's catalog. Unknown class
@@ -135,7 +157,7 @@ export function restore() {
     restoreNotice = `${dropped.length} saved class ${noun} no longer ${verb} and ${aux} removed: ${dropped.join(", ")}.`;
   }
   render();
-  notify();
+  notify({ type: "restore" });
 }
 
 function formatHour(hour) {
@@ -182,7 +204,7 @@ function findConflicts(sections) {
   return { conflicted, pairs };
 }
 
-function describeSection(section) {
+export function describeSection(section) {
   return `${section.course_code} section ${section.section}`;
 }
 
@@ -323,12 +345,15 @@ function buildGrid(entries, conflicted) {
   return grid;
 }
 
-function buildCopyButton(classNbr) {
+function buildCopyButton(section) {
+  const classNbr = section.class_nbr;
   const wrapper = document.createElement("span");
   const button = document.createElement("button");
   button.type = "button";
   button.className = "copy-btn";
   button.textContent = "Copy number";
+  button.setAttribute("aria-label", `Copy number for ${describeSection(section)}`);
+  button.dataset.focusKey = `copy-${classNbr}`;
   const feedback = document.createElement("span");
   feedback.className = "copy-feedback";
   feedback.setAttribute("role", "status");
@@ -345,7 +370,7 @@ function buildCopyButton(classNbr) {
 
 // FR-17 to FR-19, FR-27: the full set of controls for one scheduled class —
 // copy, hide/show, swap, and remove — all in one roomy row.
-function buildScheduleRow(entry) {
+function buildScheduleRow(entry, conflicted) {
   const { section, hidden } = entry;
   const li = document.createElement("li");
   li.className = "schedule-row";
@@ -367,6 +392,14 @@ function buildScheduleRow(entry) {
   meetingChip.textContent = meetingText;
   main.append(meetingChip);
 
+  // FR-22: color isn't the only signal; the row names the conflict too.
+  if (conflicted) {
+    const conflictChip = document.createElement("span");
+    conflictChip.className = "chip conflict-chip";
+    conflictChip.textContent = "Conflict";
+    main.append(conflictChip);
+  }
+
   if (section.meetings_may_be_incomplete) {
     const note = document.createElement("span");
     note.className = "chip incomplete-chip";
@@ -376,13 +409,15 @@ function buildScheduleRow(entry) {
 
   const actions = document.createElement("div");
   actions.className = "schedule-row-actions";
-  actions.append(buildCopyButton(section.class_nbr));
+  actions.append(buildCopyButton(section));
 
+  // The text says what the button does next, so it isn't also a pressed toggle.
   const hideButton = document.createElement("button");
   hideButton.type = "button";
   hideButton.className = "hide-btn";
   hideButton.textContent = hidden ? "Show" : "Hide";
-  hideButton.setAttribute("aria-pressed", String(hidden));
+  hideButton.setAttribute("aria-label", `${hidden ? "Show" : "Hide"} ${describeSection(section)}`);
+  hideButton.dataset.focusKey = `hide-${section.class_nbr}`;
   hideButton.addEventListener("click", () => toggleHidden(section.class_nbr));
   actions.append(hideButton);
 
@@ -391,6 +426,7 @@ function buildScheduleRow(entry) {
     const select = document.createElement("select");
     select.className = "swap-select";
     select.setAttribute("aria-label", `Swap ${describeSection(section)}`);
+    select.dataset.focusKey = `swap-${section.class_nbr}`;
     select.append(new Option("Swap for…", "", true, true));
     for (const alt of alternates) {
       const altMeeting = alt.meetings.length > 0 ? alt.meetings.map((m) => m.text).join("; ") : "No set time";
@@ -408,6 +444,7 @@ function buildScheduleRow(entry) {
   removeButton.className = "remove-btn";
   removeButton.textContent = "Remove";
   removeButton.setAttribute("aria-label", `Remove ${describeSection(section)}`);
+  removeButton.dataset.focusKey = `remove-${section.class_nbr}`;
   removeButton.addEventListener("click", () => removeSection(section.class_nbr));
   actions.append(removeButton);
 
@@ -415,22 +452,40 @@ function buildScheduleRow(entry) {
   return li;
 }
 
-function buildScheduleList(entries) {
+function buildScheduleList(entries, conflicted) {
   const wrapper = document.createElement("div");
   const heading = document.createElement("h3");
+  heading.id = "scheduled-heading";
+  heading.tabIndex = -1; // A focus target when the focused row is removed.
   heading.textContent = "Scheduled classes";
   const list = document.createElement("ul");
   list.className = "schedule-list";
   for (const entry of entries) {
-    list.append(buildScheduleRow(entry));
+    list.append(buildScheduleRow(entry, conflicted.has(entry.section.class_nbr)));
   }
   wrapper.append(heading, list);
   return wrapper;
 }
 
+// NFR-04: after a re-render, put focus back on the same control if it still
+// exists; otherwise on the list heading, or the panel heading if the list is gone.
+function restoreFocus(container, focusKey) {
+  if (!focusKey) return;
+  const target =
+    container.querySelector(`[data-focus-key="${focusKey}"]`) ||
+    document.getElementById("scheduled-heading") ||
+    document.getElementById("calendar-heading");
+  if (target) target.focus();
+}
+
 function render() {
   const container = document.getElementById("calendar-body");
   if (!container) return;
+  const active = document.activeElement;
+  const focusKey =
+    pendingFocusKey ||
+    (active && container.contains(active) ? active.dataset.focusKey || "scheduled-heading" : null);
+  pendingFocusKey = null;
   container.textContent = "";
 
   if (!storageOk) {
@@ -457,6 +512,7 @@ function render() {
     hint.className = "status-message";
     hint.textContent = "Add a class from search to start your schedule.";
     container.append(hint);
+    restoreFocus(container, focusKey);
     return;
   }
 
@@ -472,7 +528,8 @@ function render() {
   if (onGrid.length > 0) {
     container.append(buildGrid(onGrid, conflicted));
   }
-  container.append(buildScheduleList(entries));
+  container.append(buildScheduleList(entries, conflicted));
+  restoreFocus(container, focusKey);
 }
 
 export function init() {

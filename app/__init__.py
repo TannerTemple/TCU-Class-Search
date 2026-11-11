@@ -13,6 +13,7 @@ from app.responses import build_cached_json, finalize_response
 from app.routes.api import api_bp
 from app.routes.pages import pages_bp
 from app.search import serialize_section
+from app.static_version import init_static_version
 
 _STATIC_MAX_AGE_SECONDS = 3600
 
@@ -39,6 +40,7 @@ def create_app(overrides: Mapping[str, Any] | None = None) -> Flask:
         }
     )
 
+    init_static_version(app)
     app.register_blueprint(pages_bp)
     app.register_blueprint(api_bp)
     app.after_request(finalize_response)
