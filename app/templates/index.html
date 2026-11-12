@@ -20,37 +20,44 @@
         <h2 id="filters-heading">Filters</h2>
         <button type="button" id="filters-toggle" class="filters-toggle" aria-expanded="false" aria-controls="filters-body">Show filters</button>
       </div>
-      <div id="filters-body"></div>
+      <div id="filters-body" data-time-stops='{{ time_stops|tojson }}'></div>
     </section>
 
     <section class="panel" id="results" aria-labelledby="results-heading">
-      <h2 id="results-heading">Results</h2>
+      <div class="results-top">
+        <h2 id="results-heading">Results</h2>
 
-      <div class="search-field">
-        <label for="search-input">Search</label>
-        <input
-          type="search"
-          id="search-input"
-          name="q"
-          placeholder="Subject, course number, or title"
-          autocomplete="off"
-        >
+        <div class="search-field">
+          <label for="search-input">Search</label>
+          <input
+            type="search"
+            id="search-input"
+            name="q"
+            placeholder="Subject, course number, or title"
+            autocomplete="off"
+          >
+        </div>
+        <p id="results-summary" class="results-summary" hidden></p>
       </div>
 
       <p id="results-message" class="status-message" role="status" aria-live="polite" hidden></p>
 
       <ul id="results-list" class="results-list" aria-labelledby="results-heading" hidden></ul>
+      <div id="results-more" class="results-more"></div>
     </section>
   </div>
 
   <section class="panel" id="calendar" aria-labelledby="calendar-heading">
-    <h2 id="calendar-heading" tabindex="-1">My schedule</h2>
-    <a
-      class="register-link"
-      href="https://my.tcu.edu"
-      target="_blank"
-      rel="noopener noreferrer"
-    >Register in my.tcu.edu ↗</a>
+    <div class="schedule-head">
+      <h2 id="calendar-heading" tabindex="-1">My schedule</h2>
+      <span id="credit-total" class="credit-total" hidden></span>
+      <a
+        class="register-link"
+        href="https://psb.is.tcu.edu/criteria.jsp"
+        target="_blank"
+        rel="noopener noreferrer"
+      >Register on classes.tcu.edu ↗</a>
+    </div>
     <div id="calendar-body"></div>
   </section>
 {% endblock %}

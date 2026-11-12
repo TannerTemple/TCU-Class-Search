@@ -9,6 +9,12 @@
   /* NFR-04: control borders need 3:1 against the page (WCAG 1.4.11). --border
      is for decorative dividers only. */
   --control-border: #857f8f;
+  --accent-soft: #f1ebf9;
+  --chip-bg: #f1eff4;
+  --row-hover: #faf8fc;
+  --ok: #1a7f4b;
+  --danger: #8a1f1f;
+  --danger-soft: #fcefef;
   --space: 16px;
 }
 
@@ -96,11 +102,12 @@ body {
 .layout {
   flex: 1;
   display: grid;
-  grid-template-columns: 240px minmax(0, 1fr) minmax(0, 1.2fr);
+  grid-template-columns: 250px minmax(0, 1fr) minmax(360px, 0.95fr);
   align-items: start;
   gap: var(--space);
   padding: var(--space);
 }
+
 
 /* Filters and results share one wrapper so mobile can show them as one tab
    (FR-34). On desktop they still sit in the first two layout columns. */
@@ -124,7 +131,10 @@ body {
   display: none;
 }
 
+/* position: relative keeps absolutely positioned descendants, such as
+   .visually-hidden text, inside the panel's scroll area. */
 .panel {
+  position: relative;
   padding: var(--space);
   background: var(--surface);
   border: 1px solid var(--border);
@@ -182,100 +192,316 @@ body {
   padding: 0;
 }
 
+/* Results: the search box and summary stay pinned while the list scrolls. */
+.results-top {
+  margin: calc(-1 * var(--space)) calc(-1 * var(--space)) 0;
+  padding: var(--space) var(--space) 10px;
+  background: var(--surface);
+  border-radius: 12px 12px 0 0;
+}
+
+.results-top .search-field {
+  margin: 8px 0 6px;
+}
+
+.results-summary {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
 .results-list {
   list-style: none;
-  margin: 0;
+  margin: 8px 0 0;
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
+  container-type: inline-size;
 }
 
-.result-row {
+.results-more {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  justify-content: center;
+  padding: var(--space) 0 4px;
 }
 
-.result-head {
-  flex: 1 1 100%;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  gap: 6px;
-  font-weight: 700;
-  border: none;
-  background: none;
-  padding: 0;
-  margin: 0;
+.show-more-btn {
+  padding: 8px 18px;
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
   font: inherit;
-  text-align: left;
-  color: inherit;
+  font-weight: 600;
   cursor: pointer;
 }
 
-.result-head:hover,
-.result-head:focus-visible {
-  text-decoration: underline;
+/* FR-11: one card per course. */
+.course-card {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
 }
 
-.result-head:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+.course-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.course-heading {
+  margin: 0;
+  font-size: 1rem;
+  line-height: 1.35;
+}
+
+.course-code {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .course-title {
   color: var(--text);
+  font-weight: 600;
 }
 
-.result-meta {
-  flex: 1 1 auto;
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 8px;
+  border-radius: 6px;
+  background: var(--chip-bg);
+  border: 1px solid transparent;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.badge-note {
+  background: #fdf3e3;
+  color: #7a4d10;
+}
+
+.credit-badge {
+  flex: none;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 999px;
+}
+
+.core-tags {
   display: flex;
   flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 6px;
+}
+
+.core-tag {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+/* Rows share the card's columns (subgrid), so times and buttons line up. */
+.section-list {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  border-top: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  column-gap: 14px;
+}
+
+.section-row {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: subgrid;
+  align-items: center;
+  row-gap: 4px;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-row:last-child {
+  border-bottom: none;
+}
+
+.section-row:hover {
+  background: var(--row-hover);
+}
+
+.section-row-added {
+  background: var(--accent-soft);
+}
+
+/* FR-21: a row that would clash. A tint and a named note, not opacity, so
+   text keeps its contrast (NFR-04). */
+.section-row-conflict {
+  background: var(--danger-soft);
+}
+
+.section-row-conflict .section-time {
+  color: var(--muted);
+}
+
+.section-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.badge-section {
+  border-color: var(--control-border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.badge-section:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.section-time {
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Days and times each stay whole; a line breaks only between them. */
+.meeting-days,
+.meeting-hours {
+  white-space: nowrap;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
   gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.status-open {
+  color: var(--ok);
+}
+
+.status-closed {
+  color: var(--danger);
+}
+
+.section-action {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.section-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.result-remove-btn {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid var(--control-border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--muted);
+  font: inherit;
+  font-size: 1.125rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.result-remove-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+.conflict-note {
+  color: var(--danger);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.show-sections-btn {
+  margin: 6px 0 0 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+/* A narrow results column stacks the row: badges and status, then times and the button. */
+@container (max-width: 560px) {
+  .section-list {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .section-badges {
+    grid-column: 1;
+  }
+
+  .section-row .status {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  .section-time {
+    grid-column: 1;
+  }
 }
 
 .chip {
   display: inline-block;
-  padding: 2px 10px;
+  padding: 1px 8px;
   border-radius: 999px;
   background: var(--bg);
   border: 1px solid var(--border);
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
   color: var(--muted);
 }
 
-.core-chip {
-  color: var(--accent);
-  border-color: var(--accent);
-}
-
-.status-chip {
-  font-weight: 600;
-}
-
-.status-open {
-  color: #1a7f4b;
-  border-color: #1a7f4b;
-}
-
-.status-closed {
-  color: #8a1f1f;
-  border-color: #8a1f1f;
-}
-
 .add-btn {
-  padding: 6px 14px;
+  min-width: 4.5rem;
+  padding: 5px 14px;
   border: 1px solid var(--accent);
   border-radius: 8px;
   background: var(--accent);
   color: #fff;
+  font: inherit;
+  font-size: 0.875rem;
   font-weight: 600;
   cursor: pointer;
+}
+
+.add-btn[data-kind="switch"] {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .add-btn[aria-disabled="true"] {
@@ -284,91 +510,292 @@ body {
   color: var(--accent);
 }
 
+.add-btn-conflict,
+.add-btn-conflict[data-kind="switch"] {
+  border-color: var(--danger);
+  background: var(--surface);
+  color: var(--danger);
+}
+
 .add-btn:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.add-btn:disabled {
-  cursor: default;
+/* My schedule */
+.schedule-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  margin-bottom: 12px;
 }
 
+.credit-total {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.register-link {
+  margin-left: auto;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.schedule-hint {
+  margin: 0 0 10px;
+  font-size: 0.875rem;
+}
+
+.conflict-banner {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.storage-warning {
+  margin: 0 0 10px;
+  padding: 8px 12px;
+  border: 1px solid #8a5a1f;
+  border-radius: 8px;
+  background: #fbf0ea;
+  color: #8a5a1f;
+  font-weight: 600;
+}
+
+.schedule-list {
+  list-style: none;
+  margin: 0 0 10px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  container-type: inline-size;
+}
+
+/* A narrow panel (or phone) puts the row's controls on a second line. */
+@container (max-width: 500px) {
+  .schedule-row {
+    grid-template-columns: 6px minmax(0, 1fr);
+  }
+
+  .schedule-row-actions {
+    grid-column: 2;
+    justify-content: flex-start;
+  }
+}
+
+.schedule-row {
+  display: grid;
+  grid-template-columns: 6px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 6px 8px 6px 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+
+.schedule-row-hidden {
+  background: var(--bg);
+  border-style: dashed;
+  border-color: var(--control-border);
+}
+
+.schedule-row-conflict {
+  border-color: var(--danger);
+}
+
+.schedule-swatch {
+  align-self: stretch;
+  border-radius: 3px;
+  background: var(--swatch);
+}
+
+.schedule-row-main {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  min-width: 0;
+}
+
+.schedule-row-title {
+  flex-basis: 100%;
+  min-width: 0;
+  font-weight: 700;
+  font-size: 0.9375rem;
+  line-height: 1.3;
+}
+
+.schedule-row-label {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.8125rem;
+}
+
+.schedule-row-time {
+  display: flex;
+  flex-direction: column;
+  color: var(--muted);
+  font-size: 0.8125rem;
+}
+
+.schedule-row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.copy-btn,
+.hide-btn,
 .remove-btn {
   border: 1px solid var(--control-border);
-  border-radius: 8px;
+  border-radius: 6px;
   background: var(--surface);
   color: var(--text);
-  font-size: 0.8125rem;
+  font: inherit;
+  font-size: 0.75rem;
   padding: 2px 8px;
   cursor: pointer;
 }
 
-.remove-btn:focus-visible {
+.copy-btn:focus-visible,
+.hide-btn:focus-visible,
+.remove-btn:focus-visible,
+.swap-select:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: 2px;
 }
 
-.remove-btn-compact {
-  line-height: 1;
-  padding: 0 6px;
-  font-size: 1rem;
+.copy-wrap {
+  position: relative;
 }
 
-.conflict-banner {
-  margin: 0 0 var(--space);
-  padding: 10px 12px;
-  border: 1px solid #8a1f1f;
-  border-radius: 8px;
-  background: #fbeaea;
-  color: #8a1f1f;
+.copy-feedback {
+  position: absolute;
+  right: 0;
+  top: 100%;
+  z-index: 5;
+  color: var(--muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.copy-feedback:empty {
+  display: none;
+}
+
+/* Closed, it shows only "Sec 002"; the open list shows each option in full. */
+.swap-select {
+  width: 6.5rem;
+  padding: 2px 6px;
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  background: var(--surface);
+  font: inherit;
+  font-size: 0.75rem;
+}
+
+.conflict-chip {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--danger-soft);
   font-weight: 600;
 }
 
+.incomplete-chip {
+  color: #8a5a1f;
+  border-color: #8a5a1f;
+  border-radius: 6px;
+}
+
+.schedule-row-main .incomplete-chip {
+  flex-basis: 100%;
+}
+
+/* FR-44: what a hovered result would look like. */
+.preview-note {
+  min-height: 1.25rem;
+  margin: 0 0 4px;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.preview-note-conflict {
+  color: var(--danger);
+}
+
+/* Calendar */
 .calendar-grid {
   display: grid;
-  grid-template-columns: 48px repeat(var(--day-count), minmax(0, 1fr));
-  gap: 1px;
-  background: var(--border);
+  grid-template-columns: 44px repeat(var(--day-count), minmax(0, 1fr));
+  gap: 0;
   border: 1px solid var(--border);
   border-radius: 8px;
   overflow: hidden;
-  font-size: 0.8125rem;
+  font-size: 0.75rem;
+  background: var(--surface);
 }
 
 .calendar-day-header {
-  padding: 6px 4px;
-  background: var(--surface);
+  padding: 4px;
+  border-left: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
   text-align: center;
   font-weight: 600;
 }
 
+.calendar-grid > :first-child {
+  border-bottom: 1px solid var(--border);
+}
+
 .calendar-hours {
   position: relative;
-  background: var(--surface);
 }
 
 .calendar-hour-label {
-  padding: 2px 4px;
+  padding: 0 4px;
   color: var(--muted);
+  font-size: 0.6875rem;
+  white-space: nowrap;
   border-top: 1px solid var(--border);
-  font-size: 0.75rem;
 }
 
+.calendar-hour-label:first-child {
+  border-top: none;
+}
+
+/* Hour lines drawn with a gradient, so empty columns still read as a grid. */
 .calendar-day-column {
   position: relative;
-  background: var(--surface);
+  border-left: 1px solid var(--border);
+  background-image: linear-gradient(to bottom, var(--border) 1px, transparent 1px);
+  background-size: 100% var(--hour-height);
 }
 
 .calendar-block {
   position: absolute;
-  min-height: 20px;
+  min-height: 18px;
   display: flex;
-  align-items: center;
-  gap: 4px;
+  align-items: flex-start;
   padding: 2px 4px;
   border-radius: 6px;
-  background: var(--bg);
-  border: 1px solid var(--accent);
+  background: var(--swatch-bg);
+  border: 1px solid var(--swatch);
+  border-left-width: 3px;
   overflow: hidden;
 }
 
@@ -376,14 +803,15 @@ body {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  font-size: 0.6875rem;
   font-weight: 700;
-  color: var(--accent);
+  line-height: 1.15;
+  color: var(--swatch-text);
 }
 
 .calendar-block-conflict {
-  border: 2px solid #8a1f1f;
+  border: 2px solid var(--danger);
 }
 
 /* FR-19: hidden backups are gray. Color and a dashed border, not opacity, so
@@ -397,113 +825,74 @@ body {
   color: var(--muted);
 }
 
-.storage-warning {
-  margin: 0 0 var(--space);
-  padding: 10px 12px;
-  border: 1px solid #8a5a1f;
-  border-radius: 8px;
-  background: #fbf0ea;
-  color: #8a5a1f;
-  font-weight: 600;
+.calendar-block-clash {
+  border: 2px solid var(--danger);
+  background: var(--danger-soft);
+  box-shadow: 0 0 0 2px rgba(198, 40, 40, 0.35);
 }
 
-.register-link {
-  display: inline-block;
-  margin-bottom: var(--space);
-  font-weight: 600;
+.calendar-block-replacing {
+  opacity: 0.35;
+  border-style: dashed;
+}
+
+/* While a ghost shares time with a scheduled block, they split the column. */
+.calendar-block-squeezed {
+  left: 2px !important;
+  width: calc(50% - 3px) !important;
+}
+
+.calendar-ghost {
+  position: absolute;
+  left: 2px;
+  right: 2px;
+  z-index: 2;
+  display: flex;
+  padding: 2px 4px;
+  border: 2px dashed var(--accent);
+  border-radius: 6px;
+  background: rgba(91, 58, 140, 0.16);
+  pointer-events: none;
+}
+
+.calendar-ghost .calendar-block-label {
   color: var(--accent);
 }
 
-.schedule-list {
-  list-style: none;
-  margin: var(--space) 0 0;
-  padding: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
+.calendar-ghost-half {
+  left: calc(50% + 1px);
 }
 
-.schedule-row {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding: 10px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
+/* Half-width labels break between words only ("ACCT" / "20353"), never inside one. */
+.calendar-block-squeezed .calendar-block-label,
+.calendar-ghost-half .calendar-block-label {
+  overflow-wrap: normal;
+  font-size: 0.625rem;
 }
 
-.schedule-row-hidden {
-  background: var(--bg);
-  border-style: dashed;
-  border-color: var(--control-border);
+.calendar-ghost-conflict {
+  border-color: #c62828;
+  background: rgba(198, 40, 40, 0.22);
 }
 
-.schedule-row-main {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  font-weight: 600;
+.calendar-ghost-conflict .calendar-block-label {
+  color: var(--danger);
 }
 
-.schedule-row-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
+/* One color per scheduled course. Dark text on a light fill keeps 4.5:1. */
+.course-color-0 { --swatch: #5b3a8c; --swatch-bg: #efe8f8; --swatch-text: #3d2463; }
+.course-color-1 { --swatch: #00796b; --swatch-bg: #e0f2f1; --swatch-text: #004d40; }
+.course-color-2 { --swatch: #a86400; --swatch-bg: #fdf0d9; --swatch-text: #5e3800; }
+.course-color-3 { --swatch: #2f5fa8; --swatch-bg: #e3edfb; --swatch-text: #1d3d70; }
+.course-color-4 { --swatch: #a8335f; --swatch-bg: #fbe6ee; --swatch-text: #6e1f3d; }
+.course-color-5 { --swatch: #3f7d36; --swatch-bg: #e5f3e3; --swatch-text: #27501f; }
 
-.copy-btn,
-.hide-btn {
-  border: 1px solid var(--control-border);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 0.8125rem;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
-.copy-btn:focus-visible,
-.hide-btn:focus-visible,
-.swap-select:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
-.copy-feedback {
-  margin-left: 4px;
-  color: var(--muted);
-  font-size: 0.8125rem;
-}
-
-.swap-select {
-  padding: 4px 8px;
-  border: 1px solid var(--control-border);
-  border-radius: 8px;
-  font-size: 0.8125rem;
-  max-width: 220px;
-}
-
-.conflict-chip {
-  color: #8a1f1f;
-  border-color: #8a1f1f;
-  background: #fbeaea;
-  font-weight: 600;
-}
-
-.incomplete-chip {
-  color: #8a5a1f;
-  border-color: #8a5a1f;
-}
-
+/* Filters */
 #filters-body {
   display: flex;
   flex-direction: column;
-  gap: var(--space);
-  margin-top: var(--space);
+  gap: 18px;
+  margin-top: 12px;
 }
 
 .filter-group {
@@ -513,21 +902,24 @@ body {
   margin: 0;
   padding: 0;
   border: none;
+  min-width: 0;
 }
 
 .filter-group legend,
-.filter-group > span,
 .filter-group > label {
-  font-size: 0.875rem;
+  margin-bottom: 6px;
+  font-size: 0.8125rem;
+  font-weight: 600;
   color: var(--muted);
   padding: 0;
 }
 
-.filter-group select,
-.filter-group input[type="time"] {
-  padding: 8px 10px;
+.filter-group select {
+  padding: 7px 10px;
   border: 1px solid var(--control-border);
   border-radius: 8px;
+  background: var(--surface);
+  font: inherit;
   font-size: 0.9375rem;
 }
 
@@ -535,8 +927,222 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9375rem;
+  font-size: 0.875rem;
   color: var(--text);
+}
+
+/* FR-03: the day toggles fill one row. */
+.day-toggles {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 3px;
+}
+
+.day-toggle,
+.chip-toggle {
+  border: 1px solid var(--control-border);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.day-toggle {
+  min-height: 32px;
+  padding: 0;
+  border-radius: 8px;
+}
+
+.chip-toggles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip-toggle {
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+
+.day-toggle[aria-pressed="true"],
+.chip-toggle[aria-pressed="true"] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #fff;
+}
+
+.segmented {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 6px 0 4px;
+  padding: 2px;
+  border: 1px solid var(--control-border);
+  border-radius: 8px;
+  min-width: 0;
+}
+
+.segmented label {
+  position: relative;
+  display: block;
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.segmented span {
+  display: block;
+  padding: 3px 4px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.segmented input:checked + span {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.segmented input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+
+/* FR-04: a dual-thumb range from two stacked range inputs. */
+.time-slider {
+  margin-top: 8px;
+}
+
+.time-slider-value {
+  margin: 0 0 6px;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.time-slider-track {
+  position: relative;
+  height: 24px;
+}
+
+.time-slider-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--border);
+}
+
+.time-slider-fill {
+  position: absolute;
+  top: 10px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--accent);
+}
+
+.time-slider-track input[type="range"] {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  margin: 0;
+  background: none;
+  pointer-events: none;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.time-slider-track input[type="range"]::-webkit-slider-runnable-track {
+  background: none;
+}
+
+.time-slider-track input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 3px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.time-slider-track input[type="range"]::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+  background: var(--surface);
+  pointer-events: auto;
+  cursor: pointer;
+}
+
+.time-slider-track input[type="range"]::-moz-range-track {
+  background: none;
+}
+
+/* FR-05: the "Open classes only" switch. */
+.switch {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.switch input {
+  position: absolute;
+  opacity: 0;
+  width: 1px;
+  height: 1px;
+}
+
+.switch-track {
+  position: relative;
+  flex: none;
+  width: 36px;
+  height: 20px;
+  border-radius: 999px;
+  background: var(--control-border);
+  transition: background 0.15s;
+}
+
+.switch-track::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+}
+
+.switch input:checked + .switch-track {
+  background: var(--ok);
+}
+
+.switch input:checked + .switch-track::after {
+  transform: translateX(16px);
+}
+
+.switch input:focus-visible + .switch-track {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 .clear-all-btn {
@@ -642,13 +1248,6 @@ body {
   color: var(--accent);
 }
 
-.time-range {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-
 /* FR-34: the add confirmation. Always rendered as a live region; it collapses
    to nothing while empty. */
 .toast {
@@ -670,6 +1269,54 @@ body {
 .toast:empty {
   padding: 0;
   box-shadow: none;
+}
+
+/* Desktop: the page fits the viewport. Filters and results scroll on their
+   own, and My schedule stays in view (it scrolls only if it outgrows the
+   window). */
+@media (min-width: 769px) {
+  body {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  .site-header {
+    padding: 10px var(--space);
+  }
+
+  .layout {
+    min-height: 0;
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    padding-bottom: 0;
+  }
+
+  .search-panel {
+    grid-template-rows: minmax(0, 1fr);
+    align-items: stretch;
+    min-height: 0;
+  }
+
+  #filters,
+  #results,
+  #calendar {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .results-top {
+    position: sticky;
+    top: calc(-1 * var(--space));
+    z-index: 5;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .site-footer {
+    padding: 6px var(--space);
+    font-size: 0.75rem;
+  }
 }
 
 /* NFR-03, FR-34: narrow screens get the Search and My schedule tabs. */
@@ -771,9 +1418,20 @@ body {
   .hide-btn,
   .remove-btn,
   .swap-select,
-  .filter-group select,
-  .filter-group input[type="time"] {
+  .day-toggle,
+  .chip-toggle,
+  .show-more-btn,
+  .filter-group select {
     min-height: 40px;
+  }
+
+  .badge-section {
+    min-height: 32px;
+  }
+
+  .result-remove-btn {
+    width: 40px;
+    height: 40px;
   }
 
   .filter-option {
@@ -784,28 +1442,18 @@ body {
     max-width: 100%;
   }
 
-  .calendar-grid {
-    grid-template-columns: 44px repeat(var(--day-count), minmax(0, 1fr));
-  }
-
-  .calendar-hour-label {
-    padding: 2px 3px;
-    white-space: nowrap;
-    font-size: 0.6875rem;
-  }
-
-  /* Day columns are about 55px wide, so the label wraps instead of cutting to
-     "ACC…": subject, then catalog number and section. */
+  /* Day columns are about 55px wide; block labels wrap ("ACCT 20353 · 002")
+     instead of cutting off. */
   .calendar-block {
-    align-items: flex-start;
     padding: 2px 3px;
   }
 
   .calendar-block-label {
-    white-space: normal;
-    overflow-wrap: anywhere;
-    font-size: 0.6875rem;
-    line-height: 1.15;
+    font-size: 0.625rem;
+  }
+
+  .register-link {
+    margin-left: 0;
   }
 
   .popup-content h2 {

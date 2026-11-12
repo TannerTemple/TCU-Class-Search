@@ -34,11 +34,14 @@ CORE_CODES = frozenset(
     }
 )
 DAY_NAMES = frozenset({"Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"})
+DAYS_MATCH = frozenset({"any", "only"})  # FR-03
+CORE_MATCH = frozenset({"any", "all"})  # FR-09
 ALLOWED_PARAMS = frozenset(
     {
         "q",
         "subject",
         "days",
+        "days_match",
         "start_from",
         "start_to",
         "status",
@@ -46,6 +49,7 @@ ALLOWED_PARAMS = frozenset(
         "mode",
         "level",
         "core",
+        "core_match",
     }
 )
 MAX_QUERY_LENGTH = 100
@@ -66,6 +70,7 @@ class Filters:
     terms: tuple[str, ...] = ()
     subject: str | None = None
     days: frozenset[str] | None = None
+    days_match: str = "any"
     start_from: str | None = None
     start_to: str | None = None
     status: str | None = None
@@ -73,6 +78,7 @@ class Filters:
     mode: str | None = None
     level: tuple[int, int] | None = None
     core: frozenset[str] | None = None
+    core_match: str = "any"
 
 
 def serialize_section(section: Section) -> dict[str, Any]:
@@ -153,6 +159,9 @@ def parse_filters(args: Mapping[str, str], sections: Iterable[Section]) -> Filte
         if values["subject"]
         else None,
         days=_choices("days", values["days"], DAY_NAMES) if values["days"] else None,
+        days_match=_choice("days_match", values["days_match"], DAYS_MATCH)
+        if values["days_match"]
+        else "any",
         start_from=start_from,
         start_to=start_to,
         status=_choice("status", values["status"], {"Open", "Closed"})
@@ -168,6 +177,9 @@ def parse_filters(args: Mapping[str, str], sections: Iterable[Section]) -> Filte
         if values["level"]
         else None,
         core=_choices("core", values["core"].upper(), CORE_CODES) if values["core"] else None,
+        core_match=_choice("core_match", values["core_match"], CORE_MATCH)
+        if values["core_match"]
+        else "any",
     )
 
 
@@ -176,8 +188,20 @@ def _matches_terms(section: Section, terms: tuple[str, ...]) -> bool:
     return all(term in text for term in terms)
 
 
-def _matches_days(section: Section, days: frozenset[str]) -> bool:
-    return bool(section.meetings) and all(set(m.days) <= days for m in section.meetings)
+def _matches_days(section: Section, days: frozenset[str], mode: str) -> bool:
+    """FR-03: "any" meets on at least one selected day; "only" meets on no other day."""
+    if not section.meetings:
+        return False
+    if mode == "only":
+        return all(set(m.days) <= days for m in section.meetings)
+    return any(days.intersection(m.days) for m in section.meetings)
+
+
+def _matches_core(section: Section, core: frozenset[str], mode: str) -> bool:
+    """FR-09: "any" has at least one selected code; "all" has every one."""
+    if mode == "all":
+        return core <= set(section.core_codes)
+    return bool(core.intersection(section.core_codes))
 
 
 def _matches_start(section: Section, start_from: str | None, start_to: str | None) -> bool:
@@ -199,9 +223,9 @@ def _matches(section: Section, filters: Filters) -> bool:
         return False
     if filters.level and not filters.level[0] <= int(section.catalog_nbr) <= filters.level[1]:
         return False
-    if filters.core and not filters.core.intersection(section.core_codes):
+    if filters.core and not _matches_core(section, filters.core, filters.core_match):
         return False
-    if filters.days and not _matches_days(section, filters.days):
+    if filters.days and not _matches_days(section, filters.days, filters.days_match):
         return False
     if (filters.start_from or filters.start_to) and not _matches_start(
         section, filters.start_from, filters.start_to
